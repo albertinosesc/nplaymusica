@@ -3,85 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editor de Livro com Supabase - Colaboração em Tempo Real</title>
+    <title>Editor Musical - Colaboração em Tempo Real</title>
     
-    <!-- Bibliotecas -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/abcjs/6.2.2/abcjs-basic-min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/abc2svg/lib/abc2svg-1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/abc2svg/lib/abc2svg-utf8.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    
-    <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: Arial, sans-serif;
-            background: #f0f2f5;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; }
         
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .header h1 {
-            font-size: 1.5rem;
-        }
-        
-        .collaboration-info {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-        
-        .online-users {
-            background: rgba(255,255,255,0.2);
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-        }
-        
-        .status {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-        }
-        
-        .status.connected {
-            background: #4ade80;
-            box-shadow: 0 0 5px #4ade80;
-        }
-        
-        .status.disconnected {
-            background: #f87171;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
         .container {
             display: flex;
             gap: 20px;
-            padding: 20px;
-            height: calc(100vh - 70px);
+            flex-wrap: wrap;
         }
         
         .editor-column, .preview-column {
             flex: 1;
-            display: flex;
-            flex-direction: column;
+            min-width: 300px;
             background: white;
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -104,77 +55,26 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            transition: all 0.3s;
-            font-size: 14px;
+            font-size: 13px;
         }
         
-        button:hover {
-            background: #45a049;
-            transform: translateY(-1px);
-        }
-        
-        button.danger {
-            background: #dc3545;
-        }
-        
-        button.danger:hover {
-            background: #c82333;
-        }
-        
-        button.primary {
-            background: #667eea;
-        }
-        
-        button.primary:hover {
-            background: #5a67d8;
-        }
+        button:hover { background: #45a049; }
         
         #editor {
-            flex: 1;
+            width: 100%;
+            height: 500px;
             padding: 15px;
             border: none;
             resize: none;
-            font-size: 16px;
-            line-height: 1.6;
             font-family: 'Courier New', monospace;
-        }
-        
-        #editor:focus {
-            outline: none;
+            font-size: 14px;
         }
         
         #preview {
-            flex: 1;
             padding: 15px;
+            height: 500px;
             overflow-y: auto;
             background: white;
-        }
-        
-        .room-info {
-            background: #e9ecef;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .room-code {
-            font-family: monospace;
-            font-weight: bold;
-            color: #667eea;
-        }
-        
-        .cursor-indicator {
-            position: absolute;
-            background: #667eea;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 12px;
-            pointer-events: none;
-            z-index: 1000;
         }
         
         .notification {
@@ -190,56 +90,42 @@
         }
         
         @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
         
-        .formatting-toolbar {
-            padding: 8px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+        .room-code {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-family: monospace;
         }
         
-        select, input[type="color"] {
-            padding: 5px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
+        .status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
         }
         
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-            
-            .toolbar {
-                flex-wrap: wrap;
-            }
-        }
+        .status.connected { background: #4ade80; box-shadow: 0 0 5px #4ade80; }
+        .status.disconnected { background: #f87171; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>📖 Editor de Livro Musical com Supabase</h1>
-        <div class="collaboration-info">
-            <div class="room-info">
-                <span>Sala:</span>
-                <span class="room-code" id="roomCode">Carregando...</span>
-                <button onclick="copyRoomLink()" style="padding: 4px 8px; font-size: 12px;">📋 Copiar Link</button>
+        <h1>🎵 Editor Musical Colaborativo</h1>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <div class="room-code">
+                📚 Sala: <strong id="roomCode">Carregando...</strong>
             </div>
-            <div class="online-users" id="onlineUsers">
-                <span class="status disconnected"></span>
-                <span id="userCount">0</span> online
+            <div>
+                <span class="status disconnected" id="statusDot"></span>
+                <span id="statusText">Desconectado</span>
             </div>
-            <button onclick="createNewRoom()" style="background: #2196F3;">➕ Nova Sala</button>
+            <button onclick="copyRoomLink()">📋 Copiar Link</button>
+            <button onclick="createNewRoom()">➕ Nova Sala</button>
         </div>
     </div>
     
@@ -247,62 +133,51 @@
         <div class="editor-column">
             <div class="toolbar">
                 <button onclick="saveToSupabase()">💾 Salvar</button>
-                <button onclick="exportToPDF()">📄 Exportar PDF</button>
                 <button onclick="clearEditor()">🗑️ Limpar</button>
-                <button onclick="showShareDialog()">🔗 Compartilhar</button>
             </div>
-            <div class="formatting-toolbar">
-                <button onclick="applyFormat('bold')"><b>B</b></button>
-                <button onclick="applyFormat('italic')"><i>I</i></button>
-                <button onclick="applyFormat('underline')"><u>U</u></button>
-                <select id="fontFamily" onchange="applyFormat('fontFamily')">
-                    <option value="Arial">Arial</option>
-                    <option value="Times New Roman">Times New Roman</option>
-                    <option value="Courier New">Courier New</option>
-                </select>
-                <select id="fontSize" onchange="applyFormat('fontSize')">
-                    <option value="12px">12px</option>
-                    <option value="14px">14px</option>
-                    <option value="16px">16px</option>
-                    <option value="18px">18px</option>
-                </select>
-                <input type="color" id="textColor" onchange="applyFormat('color')" value="#000000">
-            </div>
-            <textarea id="editor" placeholder="Digite seu texto aqui. Para notação musical, use o formato ABC entre marcadores [ABC] e [/ABC]"></textarea>
+            <textarea id="editor" placeholder="Digite seu texto aqui..."></textarea>
         </div>
         
         <div class="preview-column">
             <div class="toolbar">
-                <button onclick="refreshPreview()">🔄 Atualizar Preview</button>
-                <button onclick="downloadHTML()">📥 Baixar HTML</button>
+                <button onclick="updatePreview()">🔄 Atualizar Preview</button>
             </div>
             <div id="preview"></div>
         </div>
     </div>
 
     <script>
-        // =========== CONFIGURAÇÃO DO SUPABASE ===========
-        // COLOQUE SUAS CREDENCIAIS AQUI:
-        const SUPABASE_URL = 'https://SEU_PROJETO.supabase.co';  // Substitua!
-        const SUPABASE_ANON_KEY = 'sua-chave-anonima-aqui';      // Substitua!
+        // =========== CONFIGURAÇÃO ===========
+        const SUPABASE_URL = 'https://unqbbyejjbyiysgvwrrj.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_ltaNA7nnVozoSCOcZIjg';
         
-        let supabase;
+        // =========== VARIÁVEIS (sem duplicação) ===========
+        let supabaseClient = null;
         let currentRoomId = null;
-        let currentUser = null;
         let syncTimeout = null;
         let isTyping = false;
         
-        // =========== INICIALIZAÇÃO ===========
-        async function initSupabase() {
+        // =========== FUNÇÕES PRINCIPAIS ===========
+        async function init() {
             try {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                showNotification('🟡 Conectando ao Supabase...', 'info');
                 
-                // Gerar ID de usuário único
-                currentUser = {
-                    id: localStorage.getItem('userId') || crypto.randomUUID(),
-                    name: `Usuário_${Math.floor(Math.random() * 1000)}`
-                };
-                localStorage.setItem('userId', currentUser.id);
+                // Criar cliente apenas uma vez
+                if (!supabaseClient) {
+                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                }
+                
+                // Testar conexão
+                const { error } = await supabaseClient
+                    .from('books')
+                    .select('count', { count: 'exact', head: true });
+                
+                if (error) {
+                    throw new Error(error.message);
+                }
+                
+                updateConnectionStatus(true);
+                showNotification('✅ Conectado ao Supabase!', 'success');
                 
                 // Verificar se tem sala na URL
                 const urlParams = new URLSearchParams(window.location.search);
@@ -315,71 +190,69 @@
                     await createNewRoom();
                 }
                 
-                updateConnectionStatus(true);
-                showNotification('✅ Conectado ao Supabase! Colaboração em tempo real ativa');
-                
             } catch (error) {
-                console.error('Erro ao conectar Supabase:', error);
+                console.error('Erro:', error);
                 updateConnectionStatus(false);
-                showNotification('❌ Erro ao conectar ao Supabase', 'error');
+                showNotification('❌ Erro: ' + error.message, 'error');
             }
         }
         
-        // =========== CRIAR NOVA SALA ===========
         async function createNewRoom() {
-            const newRoomId = crypto.randomUUID().slice(0, 8);
+            const newRoomId = Math.random().toString(36).substring(2, 10);
             currentRoomId = newRoomId;
             
-            // Criar documento no Supabase
-            const { error } = await supabase
-                .from('books')
-                .insert([{
-                    id: currentRoomId,
-                    title: 'Novo Livro Musical',
-                    content: `Exemplo de notação musical:
-                        
+            const exampleContent = `🎵 BEM-VINDO AO EDITOR COLABORATIVO!
+
 [ABC]
 X:1
 M:4/4
 L:1/8
 K:C
-|"C"CDEF GABc | "G7"BAGF E2D2 |]
+CDEF GABc | BAGF E2D2 |]
 [/ABC]
 
-[CIFRA style=color:red,font-size:18px]
-[C] Amor per[C]feito [G] é o [C]dom
-[/CIFRA]`,
+✨ Edite este texto e veja sincronizar em tempo real!
+Compartilhe o link com seus amigos.`;
+            
+            const { error } = await supabaseClient
+                .from('books')
+                .insert([{
+                    id: currentRoomId,
+                    content: exampleContent,
                     created_at: new Date(),
-                    user_id: currentUser.id
+                    updated_at: new Date()
                 }]);
                 
             if (error) {
                 console.error('Erro ao criar sala:', error);
+                showNotification('❌ Erro ao criar sala', 'error');
                 return;
             }
             
             await setupRealtimeSync();
-            await loadRoom(currentRoomId);
+            document.getElementById('editor').value = exampleContent;
+            updatePreview();
             
-            // Atualizar URL sem recarregar
+            // Atualizar URL
             const url = new URL(window.location);
             url.searchParams.set('room', currentRoomId);
             window.history.pushState({}, '', url);
             
             document.getElementById('roomCode').textContent = currentRoomId;
-            showNotification('✨ Nova sala criada! Compartilhe o link com seus amigos');
+            showNotification('✨ Nova sala criada!', 'success');
         }
         
-        // =========== CARREGAR SALA ===========
         async function loadRoom(roomId) {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('books')
-                .select('*')
+                .select('content')
                 .eq('id', roomId)
                 .single();
                 
             if (error && error.code !== 'PGRST116') {
-                console.error('Erro ao carregar sala:', error);
+                console.error('Erro:', error);
+                showNotification('❌ Sala não encontrada', 'error');
+                await createNewRoom();
                 return;
             }
             
@@ -390,14 +263,11 @@ K:C
             
             document.getElementById('roomCode').textContent = roomId;
             await setupRealtimeSync();
-            await updateOnlineUsers();
+            showNotification('📖 Sala carregada!', 'success');
         }
         
-        // =========== SINCRONIZAÇÃO EM TEMPO REAL ===========
         async function setupRealtimeSync() {
-            // Subscribe para mudanças na tabela books
-            const subscription = supabase
-                .channel(`room-${currentRoomId}`)
+            const channel = supabaseClient.channel(`room-${currentRoomId}`)
                 .on(
                     'postgres_changes',
                     {
@@ -410,25 +280,22 @@ K:C
                         const newContent = payload.new.content;
                         const editor = document.getElementById('editor');
                         
-                        // Evitar loop de sincronização
                         if (editor.value !== newContent && !isTyping) {
                             editor.value = newContent;
                             updatePreview();
-                            showNotification('👥 Outro usuário editou o documento', 'info');
+                            showNotification('👥 Sincronizado!', 'info');
                         }
                     }
                 )
                 .subscribe();
-            
-            // Atualizar status de usuário online
-            setInterval(() => updateOnlineUsers(), 5000);
         }
         
-        // =========== SALVAR NO SUPABASE ===========
         async function saveToSupabase() {
+            if (!currentRoomId || !supabaseClient) return;
+            
             const content = document.getElementById('editor').value;
             
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('books')
                 .update({
                     content: content,
@@ -438,230 +305,74 @@ K:C
                 
             if (error) {
                 console.error('Erro ao salvar:', error);
-                showNotification('❌ Erro ao salvar no Supabase', 'error');
-            } else {
-                showNotification('✅ Salvo no Supabase!');
             }
         }
         
-        // =========== SINCRONIZAR ENQUANTO DIGITA ===========
         function syncWhileTyping() {
             if (syncTimeout) clearTimeout(syncTimeout);
             isTyping = true;
-            
             syncTimeout = setTimeout(() => {
                 saveToSupabase();
                 isTyping = false;
             }, 1000);
         }
         
-        // =========== ATUALIZAR USUÁRIOS ONLINE ===========
-        async function updateOnlineUsers() {
-            try {
-                // Registrar atividade do usuário atual
-                await supabase
-                    .from('collaborations')
-                    .upsert({
-                        book_id: currentRoomId,
-                        user_name: currentUser.name,
-                        last_activity: new Date()
-                    });
-                
-                // Contar usuários ativos nos últimos 2 minutos
-                const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
-                const { count, error } = await supabase
-                    .from('collaborations')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('book_id', currentRoomId)
-                    .gt('last_activity', twoMinutesAgo.toISOString());
-                    
-                if (!error) {
-                    document.getElementById('userCount').textContent = count || 1;
-                    document.querySelector('.status').classList.add('connected');
-                }
-            } catch (error) {
-                console.error('Erro ao contar usuários:', error);
-            }
-        }
-        
-        // =========== COMPARTILHAR LINK ===========
-        function copyRoomLink() {
-            const url = `${window.location.origin}${window.location.pathname}?room=${currentRoomId}`;
-            navigator.clipboard.writeText(url);
-            showNotification('📋 Link da sala copiado! Compartilhe com outras pessoas');
-        }
-        
-        function showShareDialog() {
-            const url = `${window.location.origin}${window.location.pathname}?room=${currentRoomId}`;
-            const message = `📖 Venha colaborar no Editor de Livro Musical!\n\nLink: ${url}\n\nCódigo da sala: ${currentRoomId}`;
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Editor de Livro Musical',
-                    text: 'Colabore em tempo real!',
-                    url: url
-                });
-            } else {
-                prompt('Compartilhe este link:', url);
-            }
-        }
-        
-        // =========== FUNÇÕES DO EDITOR ===========
         function updatePreview() {
             const text = document.getElementById('editor').value;
             const preview = document.getElementById('preview');
-            preview.innerHTML = '';
-            
-            const segments = text.split(/(\[ABC\][\s\S]*?\[\/ABC\]|\[CIFRA[^\]]*\][\s\S]*?\[\/CIFRA\]|\[IMG\][\s\S]*?\[\/IMG\])/g);
-            
-            segments.forEach(segment => {
-                if (segment.startsWith('[ABC]') && segment.endsWith('[/ABC]')) {
-                    const abcNotation = segment.slice(5, -6).trim();
-                    const div = document.createElement('div');
-                    div.className = 'score';
-                    preview.appendChild(div);
-                    
-                    try {
-                        ABCJS.renderAbc(div, abcNotation, {
-                            responsive: 'resize',
-                            staffwidth: 800,
-                            scale: 1.5
-                        });
-                    } catch (e) {
-                        div.innerHTML = '<p style="color: red">Erro na notação musical</p>';
-                    }
-                } else if (segment.startsWith('[CIFRA') && segment.endsWith('[/CIFRA]')) {
-                    const cifraDiv = document.createElement('div');
-                    cifraDiv.style.cssText = 'font-family: monospace; line-height: 3; margin: 20px 0; padding: 10px; background: #f8f8f8; border-left: 3px solid #4CAF50';
-                    
-                    const cifraText = segment.slice(segment.indexOf(']') + 1, -8).trim();
-                    const lines = cifraText.split('\n');
-                    const processedLines = lines.map(line => {
-                        return line.replace(/\[([^\]]+)\]([^\[]+)?/g, (match, chord, text) => {
-                            text = text || '';
-                            return `<span style="position: relative; display: inline-block;"><span style="position: absolute; top: -20px; left: 0; font-weight: bold;">${chord}</span>${text}</span>`;
-                        });
-                    });
-                    
-                    cifraDiv.innerHTML = processedLines.join('\n');
-                    preview.appendChild(cifraDiv);
-                } else if (segment.startsWith('[IMG]') && segment.endsWith('[/IMG]')) {
-                    const imgData = segment.slice(5, -6).trim();
-                    const img = document.createElement('img');
-                    try {
-                        const imgInfo = JSON.parse(imgData);
-                        img.src = imgInfo.src;
-                        img.alt = imgInfo.alt || 'Imagem';
-                        img.style.maxWidth = '100%';
-                        preview.appendChild(img);
-                    } catch (e) {
-                        preview.appendChild(document.createTextNode(segment));
-                    }
-                } else if (segment.trim()) {
-                    const div = document.createElement('div');
-                    div.innerHTML = segment;
-                    preview.appendChild(div);
-                }
-            });
+            preview.innerHTML = `<pre style="white-space: pre-wrap; font-family: monospace;">${escapeHtml(text)}</pre>`;
         }
         
-        function applyFormat(type) {
-            const editor = document.getElementById('editor');
-            const start = editor.selectionStart;
-            const end = editor.selectionEnd;
-            
-            if (start === end) return;
-            
-            let tag = '';
-            switch(type) {
-                case 'bold': tag = 'b'; break;
-                case 'italic': tag = 'i'; break;
-                case 'underline': tag = 'u'; break;
-                case 'fontFamily':
-                    const font = document.getElementById('fontFamily').value;
-                    tag = `span style="font-family: ${font}"`;
-                    break;
-                case 'fontSize':
-                    const size = document.getElementById('fontSize').value;
-                    tag = `span style="font-size: ${size}"`;
-                    break;
-                case 'color':
-                    const color = document.getElementById('textColor').value;
-                    tag = `span style="color: ${color}"`;
-                    break;
-            }
-            
-            const selectedText = editor.value.substring(start, end);
-            const newText = `<${tag}>${selectedText}</${tag.split(' ')[0]}>`;
-            
-            editor.value = editor.value.substring(0, start) + newText + editor.value.substring(end);
-            updatePreview();
-            syncWhileTyping();
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
         
-        function refreshPreview() {
-            updatePreview();
+        function copyRoomLink() {
+            const url = `${window.location.protocol}//${window.location.host}${window.location.pathname}?room=${currentRoomId}`;
+            navigator.clipboard.writeText(url);
+            showNotification('📋 Link copiado!', 'success');
         }
         
         function clearEditor() {
-            if (confirm('Tem certeza que deseja limpar todo o conteúdo?')) {
+            if (confirm('Tem certeza?')) {
                 document.getElementById('editor').value = '';
                 updatePreview();
                 syncWhileTyping();
             }
         }
         
-        function exportToPDF() {
-            const element = document.getElementById('preview');
-            const opt = {
-                margin: [10, 10],
-                filename: `livro_${currentRoomId}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(element).save();
-        }
-        
-        function downloadHTML() {
-            const content = document.getElementById('preview').innerHTML;
-            const html = `<!DOCTYPE html><html><head><title>Livro Musical</title><script src="https://cdnjs.cloudflare.com/ajax/libs/abcjs/6.2.2/abcjs-basic-min.js"><\/script><style>body{margin:20px;font-family:Arial}.score{margin:20px 0}img{max-width:100%}</style></head><body>${content}</body></html>`;
-            const blob = new Blob([html], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `livro_${currentRoomId}.html`;
-            a.click();
-        }
-        
         function updateConnectionStatus(connected) {
-            const statusSpan = document.querySelector('.status');
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            
             if (connected) {
-                statusSpan.classList.add('connected');
-                statusSpan.classList.remove('disconnected');
+                dot.className = 'status connected';
+                text.textContent = 'Conectado';
             } else {
-                statusSpan.classList.add('disconnected');
-                statusSpan.classList.remove('connected');
+                dot.className = 'status disconnected';
+                text.textContent = 'Desconectado';
             }
         }
         
         function showNotification(message, type = 'success') {
             const notification = document.createElement('div');
             notification.className = 'notification';
-            notification.style.background = type === 'error' ? '#dc3545' : '#4CAF50';
+            notification.style.background = type === 'error' ? '#dc3545' : (type === 'info' ? '#2196F3' : '#4CAF50');
             notification.textContent = message;
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 3000);
         }
         
-        // =========== EVENT LISTENERS ===========
+        // Event listeners
         document.getElementById('editor').addEventListener('input', () => {
             updatePreview();
             syncWhileTyping();
         });
         
-        // =========== INICIAR APLICAÇÃO ===========
-        initSupabase();
+        // Iniciar
+        init();
     </script>
 </body>
 </html>
