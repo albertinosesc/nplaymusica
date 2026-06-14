@@ -389,26 +389,17 @@
       <div id="pianoContainer" style="background: white;"></div>
     </div>
  
-<!-- Depois: Dicionários -->
+<!-- ===== SCRIPTS EXTERNOS REMOVIDOS (não existem no servidor) ===== -->
+<!-- 
 <script src="js/acordeviolao.js"></script>
 <script src="js/acordes_dinamicos.js"></script>
-
-<!-- Depois: Acordes Piano (ANTES do main.js) -->
 <script src="js/acordes_piano.js"></script>
-
-<!-- Depois: Editores -->
 <script src="js/editor_acordes.js"></script>
 <script src="js/piano_editor.js"></script>
-
-<!-- Depois: Main.js (por último) -->
 <script src="js/main.js"></script>
-
-<!-- Outros scripts -->
-
 <script src="js/exportar.js"></script>
-
-
 <script src="js/abc_infantil.js"></script>
+-->
 
 <style>
     /* Ajustes rápidos para tela cheia */
@@ -475,6 +466,7 @@
     }
     .status.online { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
     .status.offline { background: #e74c3c; }
+    
     .notification {
         position: fixed;
         bottom: 20px;
@@ -487,11 +479,13 @@
         animation: fadeIn 0.3s;
         font-size: 13px;
     }
+    
     @keyframes fadeIn {
         from { opacity: 0; transform: translateX(-100%); }
         to { opacity: 1; transform: translateX(0); }
     }
 </style>
+
 <!-- Botão de tela cheia flutuante GLOBAL -->
 <div id="fullscreenOverlay" style="position: fixed; bottom: 20px; right: 20px; z-index: 10000;">
     <button id="globalFullscreenBtn" style="background: #00CC00; color: white; border: none; border-radius: 50%; width: 55px; height: 55px; font-size: 28px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">
@@ -540,8 +534,17 @@ if (globalBtn) {
     });
 }
 
-// =========== NOVAS FUNÇÕES DO SUPABASE ==========
+// =========== FUNÇÃO DE TELA CHEIA ==========
+function toggleFullscreenPreview() {
+    const preview = document.getElementById('preview');
+    if (!document.fullscreenElement) {
+        preview.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+}
 
+// =========== FUNÇÕES DO SUPABASE ==========
 const SUPABASE_URL = 'https://unqbbyejjbyiysgvwrrj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVucWJieWVqamJ5aXlzZ3Z3cnJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzODU1NjMsImV4cCI6MjA5Njk2MTU2M30.l-S9Cb2AnW1gX6iL-7aEghHvnH4ykJ_X7oeNn7z932I';
 
@@ -551,6 +554,57 @@ let syncTimeout = null;
 let isTyping = false;
 let userId = null;
 let heartbeatInterval = null;
+
+function renderizar() {
+    const text = document.getElementById('editor').value;
+    const preview = document.getElementById('preview');
+    if (!preview) return;
+    preview.innerHTML = '';
+    
+    const segments = text.split(/(\[ABC\][\s\S]*?\[\/ABC\]|\[CIFRA[^\]]*\][\s\S]*?\[\/CIFRA\]|\[IMG\][\s\S]*?\[\/IMG\])/g);
+    
+    segments.forEach(segment => {
+        if (segment.startsWith('[ABC]') && segment.endsWith('[/ABC]')) {
+            const abcNotation = segment.slice(5, -6).trim();
+            const div = document.createElement('div');
+            div.className = 'score';
+            preview.appendChild(div);
+            try {
+                ABCJS.renderAbc(div, abcNotation, { responsive: 'resize', staffwidth: 800, scale: 1.5 });
+            } catch (e) {
+                div.innerHTML = '<p style="color: red">Erro na notação musical ABC</p>';
+            }
+        } else if (segment.startsWith('[CIFRA') && segment.endsWith('[/CIFRA]')) {
+            const cifraDiv = document.createElement('div');
+            cifraDiv.className = 'chord-notation';
+            const cifraText = segment.slice(segment.indexOf(']') + 1, -8).trim();
+            const processedLines = cifraText.split('\n').map(line => {
+                return line.replace(/\[([^\]]+)\]([^\[]+)?/g, (match, chord, text) => {
+                    text = text || '';
+                    return `<span class="lyric"><span class="chord">${chord}</span>${text}</span>`;
+                });
+            });
+            cifraDiv.innerHTML = processedLines.join('\n');
+            preview.appendChild(cifraDiv);
+        } else if (segment.startsWith('[IMG]') && segment.endsWith('[/IMG]')) {
+            const imgData = segment.slice(5, -6).trim();
+            const img = document.createElement('img');
+            try {
+                const imgInfo = JSON.parse(imgData);
+                img.src = imgInfo.src;
+                img.alt = imgInfo.alt || 'Imagem';
+                preview.appendChild(img);
+            } catch (e) {
+                preview.appendChild(document.createTextNode(segment));
+            }
+        } else if (segment.trim()) {
+            const html = marked.parse(segment);
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            preview.appendChild(div);
+        }
+    });
+}
 
 async function initSupabase() {
     try {
@@ -753,206 +807,226 @@ function showNotification(message, type) {
     setTimeout(() => div.remove(), 3000);
 }
 
-// Sobrescrever a função renderizar para manter compatibilidade
-const renderizarOriginal = window.renderizar || function() {};
-window.renderizar = function() {
-    if (typeof renderizarOriginal === 'function') renderizarOriginal();
-};
-
-// Iniciar Supabase quando a página carregar
+// Eventos
 document.addEventListener('DOMContentLoaded', function() {
     initSupabase();
     
-    // Adicionar evento de input para sincronizar
     const editor = document.getElementById('editor');
     if (editor) {
         editor.addEventListener('input', function() {
-            if (typeof syncWhileTyping === 'function') syncWhileTyping();
+            renderizar();
+            syncWhileTyping();
         });
     }
 });
-</script>
 
-<script>
-// ============================================
-// FUNÇÃO PARA INSERIR ACORDE POR NÚMERO
-// ============================================
-function inserirAcordePorNumero() {
-    const inputField = document.getElementById('buscaAcordeRapida');
-    if (!inputField) {
-        console.error("❌ Campo buscaAcordeRapida não encontrado!");
-        return;
-    }
-    
-    const numero = inputField.value;
-    
-    if (!numero || numero < 1) {
-        console.log("⚠️ Número inválido:", numero);
-        return;
-    }
-    
-    // Busca o nome do acorde
-    let nomeAcorde = null;
-    
-    if (typeof ACORDES !== 'undefined' && ACORDES[numero]) {
-        nomeAcorde = ACORDES[numero].nome;
-    }
-    
-    if (!nomeAcorde && typeof bibliotecaAcordes !== 'undefined' && bibliotecaAcordes[numero]) {
-        nomeAcorde = bibliotecaAcordes[numero].nome;
-    }
-    
-    if (!nomeAcorde && typeof FORMAS_INFINITAS !== 'undefined' && FORMAS_INFINITAS[numero]) {
-        nomeAcorde = FORMAS_INFINITAS[numero].nome;
-    }
-    
-    if (!nomeAcorde && typeof window.processarAcordeDinamico === 'function') {
-        const acordeTemp = window.processarAcordeDinamico(numero, '');
-        if (acordeTemp && acordeTemp.nome) {
-            nomeAcorde = acordeTemp.nome;
-        }
-    }
-    
-    if (!nomeAcorde) {
-        console.error(`❌ Acorde ${numero} não encontrado!`);
-        alert(`❌ Acorde ${numero} não encontrado!`);
-        return;
-    }
-    
-    // Gera o código
-    const codigoFinal = `[Acorde:${numero};1]${nomeAcorde}[/Acorde]`;
-    
-    // Insere no editor
+// Funções auxiliares que faltavam
+function addFormatacao(prefixo, sufixo) {
     const editor = document.getElementById('editor');
     if (!editor) return;
-    
     const start = editor.selectionStart;
-    editor.value = editor.value.substring(0, start) + codigoFinal + editor.value.substring(start);
-    
-    // Atualiza a visualização
-    if (typeof renderizar === 'function') renderizar();
-    if (typeof salvarAulaAtual === 'function') salvarAulaAtual();
-    if (typeof syncWhileTyping === 'function') syncWhileTyping();
-    
-    // Limpa o campo
-    inputField.value = '';
-    editor.focus();
+    const end = editor.selectionEnd;
+    const textoSelecionado = editor.value.substring(start, end);
+    editor.value = editor.value.substring(0, start) + prefixo + textoSelecionado + sufixo + editor.value.substring(end);
+    renderizar();
+    syncWhileTyping();
 }
 
-// ============================================
-// FUNÇÃO COPIAR EDITOR
-// ============================================
-function copiarEditor() {
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const main = document.getElementById('main');
+    if (sidebar) sidebar.classList.toggle('active');
+    if (main) main.classList.toggle('sidebar-active');
+}
+
+function toggleCategoria(id) {
+    const element = document.getElementById(id);
+    if (element) element.classList.toggle('expanded');
+}
+
+function inserirABC() {
+    const abcExample = `[ABC]
+X:1
+M:4/4
+L:1/8
+K:C
+CDEF GABc | BAGF E2D2 |]
+[/ABC]\n`;
     const editor = document.getElementById('editor');
-    if (!editor) {
-        console.error('Editor não encontrado');
-        return;
-    }
-    
-    editor.select();
-    editor.setSelectionRange(0, editor.value.length);
-    
-    try {
-        const sucesso = document.execCommand('copy');
-        if (sucesso) {
-            // Feedback visual
-            const btn = event?.target;
-            if (btn) {
-                const textoOriginal = btn.textContent;
-                btn.textContent = '✅ Copiado!';
-                setTimeout(() => {
-                    btn.textContent = textoOriginal;
-                }, 1500);
-            }
-            console.log('✅ Texto copiado!');
-        } else {
-            console.error('Falha ao copiar');
-        }
-    } catch (err) {
-        console.error('Erro ao copiar:', err);
-    }
-    
-    editor.focus();
+    if (!editor) return;
+    const cursorPos = editor.selectionStart;
+    editor.value = editor.value.slice(0, cursorPos) + abcExample + editor.value.slice(editor.selectionEnd);
+    renderizar();
+    syncWhileTyping();
 }
 
-// ============================================
-// FUNÇÃO COLAR EDITOR (VERSÃO SIMPLES E FUNCIONAL)
-// ============================================
-function colarEditor() {
+function inserirABCInfantil() {
+    const abcInfantil = `[ABC]
+X:2
+M:4/4
+L:1/4
+K:C
+"^🐶" C C G G | A A G2 | "^🐱" F F E E | D D C2 |]
+[/ABC]\n`;
     const editor = document.getElementById('editor');
-    if (!editor) {
-        console.error('Editor não encontrado');
-        return;
-    }
-    
-    editor.focus();
-    
-    // Método 1: Usar Clipboard API
-    if (navigator.clipboard && navigator.clipboard.readText) {
-        navigator.clipboard.readText()
-            .then(text => {
-                if (text) {
-                    const start = editor.selectionStart;
-                    const end = editor.selectionEnd;
-                    const currentText = editor.value;
-                    editor.value = currentText.substring(0, start) + text + currentText.substring(end);
-                    
-                    if (typeof renderizar === 'function') renderizar();
-                    if (typeof salvarAulaAtual === 'function') salvarAulaAtual();
-                    if (typeof syncWhileTyping === 'function') syncWhileTyping();
-                    
-                    // Feedback visual
-                    const btn = event?.target;
-                    if (btn) {
-                        const textoOriginal = btn.textContent;
-                        btn.textContent = '✅ Colado!';
-                        setTimeout(() => {
-                            btn.textContent = textoOriginal;
-                        }, 1500);
-                    }
-                    
-                    console.log('✅ Texto colado!');
-                }
-            })
-            .catch(err => {
-                console.log('Clipboard API falhou, usando método alternativo:', err);
-                colarComPrompt(editor);
-            });
-    } else {
-        colarComPrompt(editor);
+    if (!editor) return;
+    const cursorPos = editor.selectionStart;
+    editor.value = editor.value.slice(0, cursorPos) + abcInfantil + editor.value.slice(editor.selectionEnd);
+    renderizar();
+    syncWhileTyping();
+}
+
+function inserirLink() {
+    const url = prompt("Digite a URL do link:");
+    const texto = prompt("Digite o texto do link:");
+    if (url && texto) {
+        const linkMarkdown = `[${texto}](${url})`;
+        const editor = document.getElementById('editor');
+        const cursorPos = editor.selectionStart;
+        editor.value = editor.value.slice(0, cursorPos) + linkMarkdown + editor.value.slice(editor.selectionEnd);
+        renderizar();
+        syncWhileTyping();
     }
 }
 
-// Método alternativo usando prompt (funciona sempre)
-function colarComPrompt(editor) {
-    const textoColado = prompt('📋 Cole o texto aqui (Ctrl+V):');
-    
-    if (textoColado !== null && textoColado !== '') {
-        const start = editor.selectionStart;
-        const end = editor.selectionEnd;
-        editor.value = editor.value.substring(0, start) + textoColado + editor.value.substring(end);
-        
-        if (typeof renderizar === 'function') renderizar();
-        if (typeof salvarAulaAtual === 'function') salvarAulaAtual();
-        if (typeof syncWhileTyping === 'function') syncWhileTyping();
-        
-        editor.focus();
-        
-        // Feedback visual
-        const btn = event?.target;
-        if (btn) {
-            const textoOriginal = btn.textContent;
-            btn.textContent = '✅ Colado!';
-            setTimeout(() => {
-                btn.textContent = textoOriginal;
-            }, 1500);
-        }
-        
-        console.log('✅ Texto colado via prompt!');
+function inserirImagem() {
+    const url = prompt("Digite a URL da imagem:");
+    if (url) {
+        const imgTag = `<img src="${url}" alt="Imagem" style="max-width:100%">`;
+        const editor = document.getElementById('editor');
+        const cursorPos = editor.selectionStart;
+        editor.value = editor.value.slice(0, cursorPos) + imgTag + editor.value.slice(editor.selectionEnd);
+        renderizar();
+        syncWhileTyping();
     }
 }
 
-console.log('✅ Funções de Copiar/Colar carregadas!');
+function downloadTXT() {
+    const text = document.getElementById('editor').value;
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pro_maestro_${currentRoomId}.txt`;
+    a.click();
+}
+
+function downloadPDF() {
+    const element = document.getElementById('preview');
+    const opt = { margin: [10, 10], filename: `pro_maestro_${currentRoomId}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+    html2pdf().set(opt).from(element).save();
+}
+
+function exportHTML() {
+    const content = document.getElementById('preview').innerHTML;
+    const html = `<!DOCTYPE html><html><head><title>Pro Maestro</title><script src="https://cdnjs.cloudflare.com/ajax/libs/abcjs/6.2.2/abcjs-basic-min.js"><\/script><style>body{margin:20px;font-family:Arial}.score{margin:20px 0}img{max-width:100%}</style></head><body>${content}</body></html>`;
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pro_maestro_${currentRoomId}.html`;
+    a.click();
+}
+
+function inserirAcorde() {
+    alert('Função de acorde - implementar depois');
+}
+
+function inserirPiano() {
+    alert('Função de piano - implementar depois');
+}
+
+function resetarAcordes() {
+    alert('Resetar acordes');
+}
+
+function abrirEditorAcordes() {
+    alert('Editor de acordes');
+}
+
+function abrirModalPiano() {
+    alert('Editor de piano');
+}
+
+function exportarPastaAtual() {
+    exportHTML();
+}
+
+function exportAppHTML() {
+    exportHTML();
+}
+
+function exportarArquivo() {
+    downloadTXT();
+}
+
+function importarArquivo() {
+    alert('Importar arquivo');
+}
+
+function importarParaPastaAtual() {
+    alert('Importar para pasta');
+}
+
+function exportarTudoSistema() {
+    exportHTML();
+}
+
+function importarTudoSistema() {
+    alert('Importar sistema');
+}
+
+function toggleCoresNotas() {
+    alert('Cores de notas');
+}
+
+function atualizarStaffSep() {
+    // Placeholder
+}
+
+function atualizarSysStaffSep() {
+    // Placeholder
+}
+
+function atualizarIntensidadeCores() {
+    // Placeholder
+}
+
+function ajustarAcordes() {
+    // Placeholder
+}
+
+function ajustarLetras() {
+    // Placeholder
+}
+
+function ajustarLetrasX() {
+    // Placeholder
+}
+
+function gerarPreviewAcordes() {
+    alert('Gerar preview');
+}
+
+function salvarAcordeNaBiblioteca() {
+    alert('Salvar acorde');
+}
+
+function copiarCodigoAcordes() {
+    alert('Copiar código');
+}
+
+function fecharEditorAcordes() {
+    const modal = document.getElementById('modalAcordes');
+    if (modal) modal.style.display = 'none';
+}
+
+function fecharModalPiano() {
+    const modal = document.getElementById('modalPiano');
+    if (modal) modal.style.display = 'none';
+}
+
+console.log('✅ Todas as funções carregadas!');
 </script>
 </body>
 </html>
