@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Pro Maestro - Sistema Completo</title>
+<title>Pro Maestro - Sistema Completo com Colaboração</title>
 
 <!-- Bibliotecas Externas -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -17,6 +17,71 @@
 <!-- CSS Externo -->
 <link rel="stylesheet" href="css/estilo.css">
 
+<!-- Seus scripts JS originais (TODOS mantidos) -->
+<script src="js/acordeviolao.js"></script>
+<script src="js/acordes_dinamicos.js"></script>
+<script src="js/acordes_piano.js"></script>
+<script src="js/editor_acordes.js"></script>
+<script src="js/piano_editor.js"></script>
+<script src="js/main.js"></script>
+<script src="js/exportar.js"></script>
+<script src="js/abc_infantil.js"></script>
+
+<style>
+    /* Estilos adicionais para o painel de colaboração (não interfere nos originais) */
+    .colab-panel {
+        background: #0f3460;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+    .colab-panel-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 12px;
+    }
+    .status {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 5px;
+    }
+    .status.online { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
+    .status.offline { background: #e74c3c; }
+    .room-code {
+        background: #1a1a2e;
+        padding: 4px 8px;
+        border-radius: 5px;
+        font-family: monospace;
+        font-size: 11px;
+    }
+    .user-count {
+        background: #e94560;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+    }
+    .notification {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: #333;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 8px;
+        z-index: 10000;
+        animation: fadeIn 0.3s;
+        font-size: 13px;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateX(-100%); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+</style>
 </head>
 <body>
 
@@ -25,18 +90,18 @@
 <div id="sidebar">
   <div class="sidebar-content">
     <h2>🎸 Pro Maestro</h2>
-    <div id="listaAulas"></div>
     
-    <!-- NOVO: Painel de Colaboração -->
-    <div style="background: #0f3460; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-        <div><span class="status offline" id="statusDot"></span><span id="statusText" style="font-size:12px;">Offline</span></div>
-        <div class="room-code" style="background:#1a1a2e; padding:4px 8px; border-radius:5px; font-size:11px;">📚 Sala: <strong id="roomCode">---</strong></div>
-        <div class="user-count" style="background:#e94560; padding:4px 10px; border-radius:20px; font-size:11px;" id="userCount">👥 0 online</div>
-        <button onclick="copyRoomLink()" style="background:#e94560; padding:5px 10px; font-size:11px;">📋 Copiar Link</button>
-      </div>
+    <!-- PAINEL DE COLABORAÇÃO (NOVO) -->
+    <div class="colab-panel">
+        <div class="colab-panel-row">
+            <div><span class="status offline" id="statusDot"></span><span id="statusText">Offline</span></div>
+            <div class="room-code">📚 Sala: <strong id="roomCode">---</strong></div>
+            <div class="user-count" id="userCount">👥 0 online</div>
+            <button onclick="copyRoomLink()" style="background:#e94560; padding:5px 10px; margin:0;">📋 Copiar Link</button>
+        </div>
     </div>
     
+    <div id="listaAulas"></div>
 <button onclick="exportHTML()">📄 Exportar Aula (HTML)</button>
 <button onclick="exportarPastaAtual()">📂 Exportar Pasta (HTML)</button>
 <button onclick="exportAppHTML()">💾 Exportar App (Todas)</button>
@@ -264,9 +329,6 @@
   </div>
 </div>
 
-
-
-
 <!-- Modal do Editor de Piano -->
 <div id="modalPiano" class="modal">
   <div class="modal-content" style="max-width: 1400px;">
@@ -388,103 +450,8 @@
       <h3>📄 Layout para Impressão</h3>
       <div id="pianoContainer" style="background: white;"></div>
     </div>
- 
-<!-- ===== SCRIPTS EXTERNOS REMOVIDOS (não existem no servidor) ===== -->
-<!-- 
-<script src="js/acordeviolao.js"></script>
-<script src="js/acordes_dinamicos.js"></script>
-<script src="js/acordes_piano.js"></script>
-<script src="js/editor_acordes.js"></script>
-<script src="js/piano_editor.js"></script>
-<script src="js/main.js"></script>
-<script src="js/exportar.js"></script>
-<script src="js/abc_infantil.js"></script>
--->
-
-<style>
-    /* Ajustes rápidos para tela cheia */
-    #preview {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        overflow-x: auto;
-    }
-    
-    #preview:fullscreen {
-        padding: 40px;
-        overflow-y: auto;
-    }
-    
-    #preview:-webkit-full-screen {
-        padding: 40px;
-    }
-    
-    .chord-diagram canvas {
-        max-width: 140px;
-        height: auto;
-    }
-    
-    .abcjs-container {
-        max-width: 100%;
-        overflow-x: auto;
-    }
-    
-    .abcjs-container svg {
-        max-width: 100%;
-        height: auto;
-    }
-    
-    .fullscreen-btn {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #3a86ff;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-        cursor: pointer;
-        z-index: 1000;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        transition: all 0.3s ease;
-    }
-    
-    .fullscreen-btn:hover {
-        background: #e94560;
-        transform: scale(1.05);
-    }
-    
-    /* Estilos para o painel de colaboração */
-    .status {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        margin-right: 5px;
-    }
-    .status.online { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
-    .status.offline { background: #e74c3c; }
-    
-    .notification {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        background: #333;
-        color: white;
-        padding: 10px 16px;
-        border-radius: 8px;
-        z-index: 10000;
-        animation: fadeIn 0.3s;
-        font-size: 13px;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateX(-100%); }
-        to { opacity: 1; transform: translateX(0); }
-    }
-</style>
+  </div>
+</div>
 
 <!-- Botão de tela cheia flutuante GLOBAL -->
 <div id="fullscreenOverlay" style="position: fixed; bottom: 20px; right: 20px; z-index: 10000;">
@@ -494,32 +461,176 @@
 </div>
 
 <script>
-// Botão de tela cheia GLOBAL (funciona em qualquer lugar)
+// =========== FUNÇÕES DE COLABORAÇÃO DO SUPABASE (NOVAS) ==========
+// Essas funções são ADICIONADAS sem interferir nas originais
+
+const SUPABASE_URL = 'https://unqbbyejjbyiysgvwrrj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVucWJieWVqamJ5aXlzZ3Z3cnJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzODU1NjMsImV4cCI6MjA5Njk2MTU2M30.l-S9Cb2AnW1gX6iL-7aEghHvnH4ykJ_X7oeNn7z932I';
+
+let supabaseClient = null;
+let currentRoomId = null;
+let syncTimeout = null;
+let isTyping = false;
+let userId = null;
+let heartbeatInterval = null;
+
+// Função para mostrar notificações (não interfere nas existentes)
+function showColabNotification(message, type) {
+    const div = document.createElement('div');
+    div.className = 'notification';
+    div.style.background = type === 'error' ? '#e74c3c' : (type === 'info' ? '#3498db' : '#2ecc71');
+    div.textContent = message;
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 3000);
+}
+
+async function initSupabaseColab() {
+    try {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const { error } = await supabaseClient.from('books').select('count', { count: 'exact', head: true });
+        if (error) throw error;
+        
+        updateColabStatus(true);
+        showColabNotification('✅ Conectado ao Supabase!', 'success');
+        
+        userId = localStorage.getItem('userId');
+        if (!userId) {
+            userId = 'user_' + Math.random().toString(36).substring(2, 10);
+            localStorage.setItem('userId', userId);
+        }
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomFromURL = urlParams.get('sala');
+        
+        if (roomFromURL) {
+            currentRoomId = roomFromURL;
+            await loadRoomColab(currentRoomId);
+        } else {
+            await createNewRoomColab();
+        }
+        
+        startHeartbeatColab();
+        setInterval(() => updateUserCountColab(), 10000);
+    } catch (error) {
+        updateColabStatus(false);
+        showColabNotification('❌ Erro de conexão', 'error');
+    }
+}
+
+function updateColabStatus(connected) {
+    const dot = document.getElementById('statusDot');
+    const text = document.getElementById('statusText');
+    if (dot) dot.className = connected ? 'status online' : 'status offline';
+    if (text) text.innerHTML = connected ? 'Online' : 'Offline';
+}
+
+async function startHeartbeatColab() {
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    heartbeatInterval = setInterval(async () => {
+        if (currentRoomId && supabaseClient) {
+            await supabaseClient.from('collaborations').upsert({ book_id: currentRoomId, user_name: userId, last_activity: new Date() });
+        }
+    }, 30000);
+    if (currentRoomId && supabaseClient) {
+        await supabaseClient.from('collaborations').upsert({ book_id: currentRoomId, user_name: userId, last_activity: new Date() });
+    }
+}
+
+async function updateUserCountColab() {
+    if (!currentRoomId || !supabaseClient) return;
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+    const { count } = await supabaseClient.from('collaborations').select('*', { count: 'exact', head: true }).eq('book_id', currentRoomId).gt('last_activity', twoMinutesAgo.toISOString());
+    const userCount = count || 1;
+    const userCountElement = document.getElementById('userCount');
+    if (userCountElement) userCountElement.innerHTML = `👥 ${userCount} online`;
+}
+
+async function createNewRoomColab() {
+    const newRoomId = Math.random().toString(36).substring(2, 10);
+    currentRoomId = newRoomId;
+    const exampleContent = `# 🎵 Bem-vindo ao Pro Maestro Colaborativo!\n\n[ABC]\nX:1\nM:4/4\nL:1/8\nK:C\n"C"CDEF GABc | "G7"BAGF E2D2 |]\n[/ABC]\n\nEdite este texto em tempo real!`;
+    await supabaseClient.from('books').insert([{ id: currentRoomId, content: exampleContent }]);
+    document.getElementById('editor').value = exampleContent;
+    document.getElementById('roomCode').innerHTML = currentRoomId;
+    if (typeof renderizar === 'function') renderizar();
+    const url = new URL(window.location);
+    url.searchParams.set('sala', currentRoomId);
+    window.history.pushState({}, '', url);
+    await setupRealtimeSyncColab();
+    showColabNotification('✨ Sala criada!', 'success');
+}
+
+async function loadRoomColab(roomId) {
+    const { data } = await supabaseClient.from('books').select('content').eq('id', roomId).single();
+    if (data) {
+        document.getElementById('editor').value = data.content;
+        document.getElementById('roomCode').innerHTML = roomId;
+        if (typeof renderizar === 'function') renderizar();
+    } else {
+        await createNewRoomColab();
+    }
+    await setupRealtimeSyncColab();
+}
+
+async function setupRealtimeSyncColab() {
+    if (!supabaseClient || !currentRoomId) return;
+    supabaseClient.channel(`sala-${currentRoomId}`).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'books', filter: `id=eq.${currentRoomId}` }, (payload) => {
+        const newContent = payload.new.content;
+        const editor = document.getElementById('editor');
+        if (editor && editor.value !== newContent && !isTyping) {
+            editor.value = newContent;
+            if (typeof renderizar === 'function') renderizar();
+            showColabNotification('👥 Sincronizado!', 'info');
+        }
+    }).subscribe();
+}
+
+async function saveToSupabaseColab() {
+    if (!currentRoomId || !supabaseClient) return;
+    await supabaseClient.from('books').update({ content: document.getElementById('editor').value, updated_at: new Date() }).eq('id', currentRoomId);
+}
+
+function syncWhileTypingColab() {
+    if (syncTimeout) clearTimeout(syncTimeout);
+    isTyping = true;
+    syncTimeout = setTimeout(() => { saveToSupabaseColab(); isTyping = false; }, 1000);
+}
+
+function copyRoomLink() {
+    const url = `${window.location.origin}${window.location.pathname.replace('.html', '')}visualizador.html?sala=${currentRoomId}`;
+    navigator.clipboard.writeText(url);
+    showColabNotification('📋 Link para alunos copiado!', 'success');
+}
+
+// Sobrescrever a função de input do editor para incluir sync
+const originalEditorListener = document.getElementById('editor').oninput;
+document.getElementById('editor').addEventListener('input', function() {
+    if (typeof syncWhileTypingColab === 'function') syncWhileTypingColab();
+});
+
+// Iniciar colaboração quando a página carregar
+document.addEventListener('DOMContentLoaded', function() {
+    initSupabaseColab();
+});
+
+// Botão de tela cheia GLOBAL
 const globalBtn = document.getElementById('globalFullscreenBtn');
 if (globalBtn) {
     globalBtn.addEventListener('click', function() {
         const preview = document.getElementById('preview');
         const btn = this;
-        
         if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-            if (preview.requestFullscreen) {
-                preview.requestFullscreen();
-            } else if (preview.webkitRequestFullscreen) {
-                preview.webkitRequestFullscreen();
-            }
+            if (preview.requestFullscreen) preview.requestFullscreen();
+            else if (preview.webkitRequestFullscreen) preview.webkitRequestFullscreen();
             btn.textContent = '✖';
             btn.style.background = '#e94560';
         } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            }
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
             btn.textContent = '⛶';
             btn.style.background = '#00CC00';
         }
     });
-    
     document.addEventListener('fullscreenchange', function() {
         if (!document.fullscreenElement) {
             globalBtn.textContent = '⛶';
@@ -534,499 +645,8 @@ if (globalBtn) {
     });
 }
 
-// =========== FUNÇÃO DE TELA CHEIA ==========
-function toggleFullscreenPreview() {
-    const preview = document.getElementById('preview');
-    if (!document.fullscreenElement) {
-        preview.requestFullscreen();
-    } else {
-        document.exitFullscreen();
-    }
-}
-
-// =========== FUNÇÕES DO SUPABASE ==========
-const SUPABASE_URL = 'https://unqbbyejjbyiysgvwrrj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVucWJieWVqamJ5aXlzZ3Z3cnJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzODU1NjMsImV4cCI6MjA5Njk2MTU2M30.l-S9Cb2AnW1gX6iL-7aEghHvnH4ykJ_X7oeNn7z932I';
-
-let supabaseClient = null;
-let currentRoomId = null;
-let syncTimeout = null;
-let isTyping = false;
-let userId = null;
-let heartbeatInterval = null;
-
-function renderizar() {
-    const text = document.getElementById('editor').value;
-    const preview = document.getElementById('preview');
-    if (!preview) return;
-    preview.innerHTML = '';
-    
-    const segments = text.split(/(\[ABC\][\s\S]*?\[\/ABC\]|\[CIFRA[^\]]*\][\s\S]*?\[\/CIFRA\]|\[IMG\][\s\S]*?\[\/IMG\])/g);
-    
-    segments.forEach(segment => {
-        if (segment.startsWith('[ABC]') && segment.endsWith('[/ABC]')) {
-            const abcNotation = segment.slice(5, -6).trim();
-            const div = document.createElement('div');
-            div.className = 'score';
-            preview.appendChild(div);
-            try {
-                ABCJS.renderAbc(div, abcNotation, { responsive: 'resize', staffwidth: 800, scale: 1.5 });
-            } catch (e) {
-                div.innerHTML = '<p style="color: red">Erro na notação musical ABC</p>';
-            }
-        } else if (segment.startsWith('[CIFRA') && segment.endsWith('[/CIFRA]')) {
-            const cifraDiv = document.createElement('div');
-            cifraDiv.className = 'chord-notation';
-            const cifraText = segment.slice(segment.indexOf(']') + 1, -8).trim();
-            const processedLines = cifraText.split('\n').map(line => {
-                return line.replace(/\[([^\]]+)\]([^\[]+)?/g, (match, chord, text) => {
-                    text = text || '';
-                    return `<span class="lyric"><span class="chord">${chord}</span>${text}</span>`;
-                });
-            });
-            cifraDiv.innerHTML = processedLines.join('\n');
-            preview.appendChild(cifraDiv);
-        } else if (segment.startsWith('[IMG]') && segment.endsWith('[/IMG]')) {
-            const imgData = segment.slice(5, -6).trim();
-            const img = document.createElement('img');
-            try {
-                const imgInfo = JSON.parse(imgData);
-                img.src = imgInfo.src;
-                img.alt = imgInfo.alt || 'Imagem';
-                preview.appendChild(img);
-            } catch (e) {
-                preview.appendChild(document.createTextNode(segment));
-            }
-        } else if (segment.trim()) {
-            const html = marked.parse(segment);
-            const div = document.createElement('div');
-            div.innerHTML = html;
-            preview.appendChild(div);
-        }
-    });
-}
-
-async function initSupabase() {
-    try {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        const { error } = await supabaseClient.from('books').select('count', { count: 'exact', head: true });
-        if (error) throw error;
-        
-        updateConnectionStatus(true);
-        showNotification('✅ Conectado ao Supabase!', 'success');
-        
-        userId = localStorage.getItem('userId');
-        if (!userId) {
-            userId = 'user_' + Math.random().toString(36).substring(2, 10);
-            localStorage.setItem('userId', userId);
-        }
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        const roomFromURL = urlParams.get('sala');
-        
-        if (roomFromURL) {
-            currentRoomId = roomFromURL;
-            await loadRoom(currentRoomId);
-        } else {
-            await createNewRoom();
-        }
-        
-        startHeartbeat();
-        setInterval(() => updateUserCount(), 10000);
-        
-    } catch (error) {
-        console.error('Erro:', error);
-        updateConnectionStatus(false);
-        showNotification('❌ Erro de conexão: ' + error.message, 'error');
-    }
-}
-
-async function startHeartbeat() {
-    if (heartbeatInterval) clearInterval(heartbeatInterval);
-    
-    heartbeatInterval = setInterval(async () => {
-        if (currentRoomId && supabaseClient) {
-            await supabaseClient
-                .from('collaborations')
-                .upsert({
-                    book_id: currentRoomId,
-                    user_name: userId,
-                    last_activity: new Date()
-                });
-        }
-    }, 30000);
-    
-    if (currentRoomId && supabaseClient) {
-        await supabaseClient
-            .from('collaborations')
-            .upsert({
-                book_id: currentRoomId,
-                user_name: userId,
-                last_activity: new Date()
-            });
-    }
-}
-
-async function updateUserCount() {
-    if (!currentRoomId || !supabaseClient) return;
-    
-    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
-    const { count, error } = await supabaseClient
-        .from('collaborations')
-        .select('*', { count: 'exact', head: true })
-        .eq('book_id', currentRoomId)
-        .gt('last_activity', twoMinutesAgo.toISOString());
-    
-    if (!error) {
-        const userCount = count || 1;
-        const userCountElement = document.getElementById('userCount');
-        if (userCountElement) {
-            userCountElement.innerHTML = `👥 ${userCount} online`;
-        }
-    }
-}
-
-async function createNewRoom() {
-    const newRoomId = Math.random().toString(36).substring(2, 10);
-    currentRoomId = newRoomId;
-    
-    const exampleContent = `# 🎵 Bem-vindo ao Pro Maestro Colaborativo!
-
-[ABC]
-X:1
-M:4/4
-L:1/8
-K:C
-"C"CDEF GABc | "G7"BAGF E2D2 |]
-[/ABC]
-
-Edite este texto e veja a mágica acontecer em tempo real.`;
-    
-    const { error } = await supabaseClient.from('books').insert([{
-        id: currentRoomId,
-        content: exampleContent,
-        created_at: new Date(),
-        updated_at: new Date()
-    }]);
-    
-    if (error) {
-        showNotification('❌ Erro ao criar sala: ' + error.message, 'error');
-        return;
-    }
-    
-    const editorElement = document.getElementById('editor');
-    const roomCodeElement = document.getElementById('roomCode');
-    
-    if (editorElement) editorElement.value = exampleContent;
-    if (roomCodeElement) roomCodeElement.innerHTML = currentRoomId;
-    
-    renderizar();
-    
-    const url = new URL(window.location);
-    url.searchParams.set('sala', currentRoomId);
-    window.history.pushState({}, '', url);
-    
-    await setupRealtimeSync();
-    showNotification('✨ Sala criada! Compartilhe o link', 'success');
-}
-
-async function loadRoom(roomId) {
-    const { data, error } = await supabaseClient.from('books').select('content').eq('id', roomId).single();
-    
-    if (error || !data) {
-        showNotification('⚠️ Sala não encontrada, criando nova...', 'info');
-        await createNewRoom();
-        return;
-    }
-    
-    const editorElement = document.getElementById('editor');
-    const roomCodeElement = document.getElementById('roomCode');
-    
-    if (editorElement) editorElement.value = data.content;
-    if (roomCodeElement) roomCodeElement.innerHTML = roomId;
-    
-    renderizar();
-    await setupRealtimeSync();
-    showNotification('📖 Sala carregada!', 'success');
-}
-
-async function setupRealtimeSync() {
-    if (!supabaseClient || !currentRoomId) return;
-    
-    const channel = supabaseClient.channel(`sala-${currentRoomId}`)
-        .on('postgres_changes', {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'books',
-            filter: `id=eq.${currentRoomId}`
-        }, (payload) => {
-            const newContent = payload.new.content;
-            const editor = document.getElementById('editor');
-            if (editor && editor.value !== newContent && !isTyping) {
-                editor.value = newContent;
-                renderizar();
-                showNotification('👥 Sincronizado!', 'info');
-            }
-        })
-        .subscribe();
-}
-
-async function saveToSupabase() {
-    if (!currentRoomId || !supabaseClient) return;
-    const content = document.getElementById('editor').value;
-    await supabaseClient.from('books').update({ content: content, updated_at: new Date() }).eq('id', currentRoomId);
-}
-
-function syncWhileTyping() {
-    if (syncTimeout) clearTimeout(syncTimeout);
-    isTyping = true;
-    syncTimeout = setTimeout(() => { saveToSupabase(); isTyping = false; }, 1000);
-}
-
-function copyRoomLink() {
-    const baseUrl = window.location.origin + window.location.pathname.replace('editor.html', 'visualizador.html');
-    const url = `${baseUrl}?sala=${currentRoomId}`;
-    navigator.clipboard.writeText(url);
-    showNotification('📋 Link para alunos copiado!', 'success');
-}
-
-function updateConnectionStatus(connected) {
-    const dot = document.getElementById('statusDot');
-    const text = document.getElementById('statusText');
-    if (dot) dot.className = connected ? 'status online' : 'status offline';
-    if (text) text.innerHTML = connected ? 'Online' : 'Offline';
-}
-
-function showNotification(message, type) {
-    const div = document.createElement('div');
-    div.className = 'notification';
-    div.style.background = type === 'error' ? '#e74c3c' : (type === 'info' ? '#3498db' : '#2ecc71');
-    div.textContent = message;
-    document.body.appendChild(div);
-    setTimeout(() => div.remove(), 3000);
-}
-
-// Eventos
-document.addEventListener('DOMContentLoaded', function() {
-    initSupabase();
-    
-    const editor = document.getElementById('editor');
-    if (editor) {
-        editor.addEventListener('input', function() {
-            renderizar();
-            syncWhileTyping();
-        });
-    }
-});
-
-// Funções auxiliares que faltavam
-function addFormatacao(prefixo, sufixo) {
-    const editor = document.getElementById('editor');
-    if (!editor) return;
-    const start = editor.selectionStart;
-    const end = editor.selectionEnd;
-    const textoSelecionado = editor.value.substring(start, end);
-    editor.value = editor.value.substring(0, start) + prefixo + textoSelecionado + sufixo + editor.value.substring(end);
-    renderizar();
-    syncWhileTyping();
-}
-
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const main = document.getElementById('main');
-    if (sidebar) sidebar.classList.toggle('active');
-    if (main) main.classList.toggle('sidebar-active');
-}
-
-function toggleCategoria(id) {
-    const element = document.getElementById(id);
-    if (element) element.classList.toggle('expanded');
-}
-
-function inserirABC() {
-    const abcExample = `[ABC]
-X:1
-M:4/4
-L:1/8
-K:C
-CDEF GABc | BAGF E2D2 |]
-[/ABC]\n`;
-    const editor = document.getElementById('editor');
-    if (!editor) return;
-    const cursorPos = editor.selectionStart;
-    editor.value = editor.value.slice(0, cursorPos) + abcExample + editor.value.slice(editor.selectionEnd);
-    renderizar();
-    syncWhileTyping();
-}
-
-function inserirABCInfantil() {
-    const abcInfantil = `[ABC]
-X:2
-M:4/4
-L:1/4
-K:C
-"^🐶" C C G G | A A G2 | "^🐱" F F E E | D D C2 |]
-[/ABC]\n`;
-    const editor = document.getElementById('editor');
-    if (!editor) return;
-    const cursorPos = editor.selectionStart;
-    editor.value = editor.value.slice(0, cursorPos) + abcInfantil + editor.value.slice(editor.selectionEnd);
-    renderizar();
-    syncWhileTyping();
-}
-
-function inserirLink() {
-    const url = prompt("Digite a URL do link:");
-    const texto = prompt("Digite o texto do link:");
-    if (url && texto) {
-        const linkMarkdown = `[${texto}](${url})`;
-        const editor = document.getElementById('editor');
-        const cursorPos = editor.selectionStart;
-        editor.value = editor.value.slice(0, cursorPos) + linkMarkdown + editor.value.slice(editor.selectionEnd);
-        renderizar();
-        syncWhileTyping();
-    }
-}
-
-function inserirImagem() {
-    const url = prompt("Digite a URL da imagem:");
-    if (url) {
-        const imgTag = `<img src="${url}" alt="Imagem" style="max-width:100%">`;
-        const editor = document.getElementById('editor');
-        const cursorPos = editor.selectionStart;
-        editor.value = editor.value.slice(0, cursorPos) + imgTag + editor.value.slice(editor.selectionEnd);
-        renderizar();
-        syncWhileTyping();
-    }
-}
-
-function downloadTXT() {
-    const text = document.getElementById('editor').value;
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `pro_maestro_${currentRoomId}.txt`;
-    a.click();
-}
-
-function downloadPDF() {
-    const element = document.getElementById('preview');
-    const opt = { margin: [10, 10], filename: `pro_maestro_${currentRoomId}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-    html2pdf().set(opt).from(element).save();
-}
-
-function exportHTML() {
-    const content = document.getElementById('preview').innerHTML;
-    const html = `<!DOCTYPE html><html><head><title>Pro Maestro</title><script src="https://cdnjs.cloudflare.com/ajax/libs/abcjs/6.2.2/abcjs-basic-min.js"><\/script><style>body{margin:20px;font-family:Arial}.score{margin:20px 0}img{max-width:100%}</style></head><body>${content}</body></html>`;
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `pro_maestro_${currentRoomId}.html`;
-    a.click();
-}
-
-function inserirAcorde() {
-    alert('Função de acorde - implementar depois');
-}
-
-function inserirPiano() {
-    alert('Função de piano - implementar depois');
-}
-
-function resetarAcordes() {
-    alert('Resetar acordes');
-}
-
-function abrirEditorAcordes() {
-    alert('Editor de acordes');
-}
-
-function abrirModalPiano() {
-    alert('Editor de piano');
-}
-
-function exportarPastaAtual() {
-    exportHTML();
-}
-
-function exportAppHTML() {
-    exportHTML();
-}
-
-function exportarArquivo() {
-    downloadTXT();
-}
-
-function importarArquivo() {
-    alert('Importar arquivo');
-}
-
-function importarParaPastaAtual() {
-    alert('Importar para pasta');
-}
-
-function exportarTudoSistema() {
-    exportHTML();
-}
-
-function importarTudoSistema() {
-    alert('Importar sistema');
-}
-
-function toggleCoresNotas() {
-    alert('Cores de notas');
-}
-
-function atualizarStaffSep() {
-    // Placeholder
-}
-
-function atualizarSysStaffSep() {
-    // Placeholder
-}
-
-function atualizarIntensidadeCores() {
-    // Placeholder
-}
-
-function ajustarAcordes() {
-    // Placeholder
-}
-
-function ajustarLetras() {
-    // Placeholder
-}
-
-function ajustarLetrasX() {
-    // Placeholder
-}
-
-function gerarPreviewAcordes() {
-    alert('Gerar preview');
-}
-
-function salvarAcordeNaBiblioteca() {
-    alert('Salvar acorde');
-}
-
-function copiarCodigoAcordes() {
-    alert('Copiar código');
-}
-
-function fecharEditorAcordes() {
-    const modal = document.getElementById('modalAcordes');
-    if (modal) modal.style.display = 'none';
-}
-
-function fecharModalPiano() {
-    const modal = document.getElementById('modalPiano');
-    if (modal) modal.style.display = 'none';
-}
-
-console.log('✅ Todas as funções carregadas!');
+console.log('✅ Colaboração do Supabase ativada!');
 </script>
+
 </body>
 </html>
