@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Pro Maestro - Sistema Completo com Colaboração</title>
+<title>Pro Maestro - Sistema Completo</title>
 
 <!-- Bibliotecas Externas -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -17,71 +17,6 @@
 <!-- CSS Externo -->
 <link rel="stylesheet" href="css/estilo.css">
 
-<!-- Seus scripts JS originais (TODOS mantidos) -->
-<script src="js/acordeviolao.js"></script>
-<script src="js/acordes_dinamicos.js"></script>
-<script src="js/acordes_piano.js"></script>
-<script src="js/editor_acordes.js"></script>
-<script src="js/piano_editor.js"></script>
-<script src="js/main.js"></script>
-<script src="js/exportar.js"></script>
-<script src="js/abc_infantil.js"></script>
-
-<style>
-    /* Estilos adicionais para o painel de colaboração (não interfere nos originais) */
-    .colab-panel {
-        background: #0f3460;
-        padding: 10px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-    }
-    .colab-panel-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 8px;
-        font-size: 12px;
-    }
-    .status {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        margin-right: 5px;
-    }
-    .status.online { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
-    .status.offline { background: #e74c3c; }
-    .room-code {
-        background: #1a1a2e;
-        padding: 4px 8px;
-        border-radius: 5px;
-        font-family: monospace;
-        font-size: 11px;
-    }
-    .user-count {
-        background: #e94560;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 11px;
-    }
-    .notification {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        background: #333;
-        color: white;
-        padding: 10px 16px;
-        border-radius: 8px;
-        z-index: 10000;
-        animation: fadeIn 0.3s;
-        font-size: 13px;
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateX(-100%); }
-        to { opacity: 1; transform: translateX(0); }
-    }
-</style>
 </head>
 <body>
 
@@ -92,13 +27,13 @@
     <h2>🎸 Pro Maestro</h2>
     
     <!-- PAINEL DE COLABORAÇÃO (NOVO) -->
-    <div class="colab-panel">
-        <div class="colab-panel-row">
-            <div><span class="status offline" id="statusDot"></span><span id="statusText">Offline</span></div>
-            <div class="room-code">📚 Sala: <strong id="roomCode">---</strong></div>
-            <div class="user-count" id="userCount">👥 0 online</div>
-            <button onclick="copyRoomLink()" style="background:#e94560; padding:5px 10px; margin:0;">📋 Copiar Link</button>
-        </div>
+    <div style="background: #0f3460; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px;">
+        <div><span class="status offline" id="statusDot"></span><span id="statusText">Offline</span></div>
+        <div style="background: #1a1a2e; padding: 4px 8px; border-radius: 5px;">📚 Sala: <strong id="roomCode">---</strong></div>
+        <div style="background: #e94560; padding: 4px 10px; border-radius: 20px;" id="userCount">👥 0 online</div>
+        <button onclick="copyRoomLink()" style="background: #e94560; padding: 5px 10px; margin: 0;">📋 Copiar Link</button>
+      </div>
     </div>
     
     <div id="listaAulas"></div>
@@ -329,6 +264,9 @@
   </div>
 </div>
 
+
+
+
 <!-- Modal do Editor de Piano -->
 <div id="modalPiano" class="modal">
   <div class="modal-content" style="max-width: 1400px;">
@@ -450,9 +388,83 @@
       <h3>📄 Layout para Impressão</h3>
       <div id="pianoContainer" style="background: white;"></div>
     </div>
-  </div>
-</div>
+ 
+<!-- Depois: Dicionários -->
+<script src="js/acordeviolao.js"></script>
+<script src="js/acordes_dinamicos.js"></script>
 
+<!-- Depois: Acordes Piano (ANTES do main.js) -->
+<script src="js/acordes_piano.js"></script>
+
+<!-- Depois: Editores -->
+<script src="js/editor_acordes.js"></script>
+<script src="js/piano_editor.js"></script>
+
+<!-- Depois: Main.js (por último) -->
+<script src="js/main.js"></script>
+
+<!-- Outros scripts -->
+
+<script src="js/exportar.js"></script>
+
+
+<script src="js/abc_infantil.js"></script>
+
+<style>
+    /* Ajustes rápidos para tela cheia */
+    #preview {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        overflow-x: auto;
+    }
+    
+    #preview:fullscreen {
+        padding: 40px;
+        overflow-y: auto;
+    }
+    
+    #preview:-webkit-full-screen {
+        padding: 40px;
+    }
+    
+    .chord-diagram canvas {
+        max-width: 140px;
+        height: auto;
+    }
+    
+    .abcjs-container {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+    
+    .abcjs-container svg {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    .fullscreen-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #3a86ff;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+        cursor: pointer;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .fullscreen-btn:hover {
+        background: #e94560;
+        transform: scale(1.05);
+    }
+</style>
 <!-- Botão de tela cheia flutuante GLOBAL -->
 <div id="fullscreenOverlay" style="position: fixed; bottom: 20px; right: 20px; z-index: 10000;">
     <button id="globalFullscreenBtn" style="background: #00CC00; color: white; border: none; border-radius: 50%; width: 55px; height: 55px; font-size: 28px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">
@@ -461,37 +473,44 @@
 </div>
 
 <script>
-// =========== FUNÇÕES DE COLABORAÇÃO DO SUPABASE (NOVAS) ==========
-// Essas funções são ADICIONADAS sem interferir nas originais
-
+// ============================================
+// FUNÇÕES DO SUPABASE (ADICIONADAS)
+// ============================================
 const SUPABASE_URL = 'https://unqbbyejjbyiysgvwrrj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVucWJieWVqamJ5aXlzZ3Z3cnJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzODU1NjMsImV4cCI6MjA5Njk2MTU2M30.l-S9Cb2AnW1gX6iL-7aEghHvnH4ykJ_X7oeNn7z932I';
 
 let supabaseClient = null;
 let currentRoomId = null;
 let syncTimeout = null;
-let isTyping = false;
+let isTypingSupabase = false;
 let userId = null;
 let heartbeatInterval = null;
 
-// Função para mostrar notificações (não interfere nas existentes)
-function showColabNotification(message, type) {
+function showNotification(msg, tipo) {
     const div = document.createElement('div');
-    div.className = 'notification';
-    div.style.background = type === 'error' ? '#e74c3c' : (type === 'info' ? '#3498db' : '#2ecc71');
-    div.textContent = message;
+    div.style.position = 'fixed';
+    div.style.bottom = '20px';
+    div.style.left = '20px';
+    div.style.background = tipo === 'error' ? '#e74c3c' : (tipo === 'info' ? '#3498db' : '#2ecc71');
+    div.style.color = 'white';
+    div.style.padding = '10px 16px';
+    div.style.borderRadius = '8px';
+    div.style.zIndex = '10000';
+    div.style.fontSize = '13px';
+    div.style.animation = 'fadeIn 0.3s';
+    div.textContent = msg;
     document.body.appendChild(div);
     setTimeout(() => div.remove(), 3000);
 }
 
-async function initSupabaseColab() {
+async function initSupabase() {
     try {
         supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const { error } = await supabaseClient.from('books').select('count', { count: 'exact', head: true });
-        if (error) throw error;
+        await supabaseClient.from('books').select('count', { count: 'exact', head: true });
         
-        updateColabStatus(true);
-        showColabNotification('✅ Conectado ao Supabase!', 'success');
+        document.getElementById('statusDot').className = 'status online';
+        document.getElementById('statusText').innerHTML = 'Online';
+        showNotification('✅ Conectado ao Supabase!', 'success');
         
         userId = localStorage.getItem('userId');
         if (!userId) {
@@ -501,30 +520,23 @@ async function initSupabaseColab() {
         
         const urlParams = new URLSearchParams(window.location.search);
         const roomFromURL = urlParams.get('sala');
-        
         if (roomFromURL) {
             currentRoomId = roomFromURL;
-            await loadRoomColab(currentRoomId);
+            await loadRoomSupabase(currentRoomId);
         } else {
-            await createNewRoomColab();
+            await createRoomSupabase();
         }
         
-        startHeartbeatColab();
-        setInterval(() => updateUserCountColab(), 10000);
-    } catch (error) {
-        updateColabStatus(false);
-        showColabNotification('❌ Erro de conexão', 'error');
+        startHeartbeat();
+        setInterval(() => updateUserCount(), 10000);
+    } catch(e) {
+        document.getElementById('statusDot').className = 'status offline';
+        document.getElementById('statusText').innerHTML = 'Offline';
+        showNotification('❌ Erro de conexão', 'error');
     }
 }
 
-function updateColabStatus(connected) {
-    const dot = document.getElementById('statusDot');
-    const text = document.getElementById('statusText');
-    if (dot) dot.className = connected ? 'status online' : 'status offline';
-    if (text) text.innerHTML = connected ? 'Online' : 'Offline';
-}
-
-async function startHeartbeatColab() {
+async function startHeartbeat() {
     if (heartbeatInterval) clearInterval(heartbeatInterval);
     heartbeatInterval = setInterval(async () => {
         if (currentRoomId && supabaseClient) {
@@ -536,84 +548,84 @@ async function startHeartbeatColab() {
     }
 }
 
-async function updateUserCountColab() {
+async function updateUserCount() {
     if (!currentRoomId || !supabaseClient) return;
     const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
     const { count } = await supabaseClient.from('collaborations').select('*', { count: 'exact', head: true }).eq('book_id', currentRoomId).gt('last_activity', twoMinutesAgo.toISOString());
-    const userCount = count || 1;
-    const userCountElement = document.getElementById('userCount');
-    if (userCountElement) userCountElement.innerHTML = `👥 ${userCount} online`;
+    document.getElementById('userCount').innerHTML = `👥 ${count || 1} online`;
 }
 
-async function createNewRoomColab() {
+async function createRoomSupabase() {
     const newRoomId = Math.random().toString(36).substring(2, 10);
     currentRoomId = newRoomId;
-    const exampleContent = `# 🎵 Bem-vindo ao Pro Maestro Colaborativo!\n\n[ABC]\nX:1\nM:4/4\nL:1/8\nK:C\n"C"CDEF GABc | "G7"BAGF E2D2 |]\n[/ABC]\n\nEdite este texto em tempo real!`;
-    await supabaseClient.from('books').insert([{ id: currentRoomId, content: exampleContent }]);
-    document.getElementById('editor').value = exampleContent;
+    const content = document.getElementById('editor').value || '# Pro Maestro Colaborativo\n\nEdite este texto...';
+    await supabaseClient.from('books').insert([{ id: currentRoomId, content: content }]);
     document.getElementById('roomCode').innerHTML = currentRoomId;
-    if (typeof renderizar === 'function') renderizar();
     const url = new URL(window.location);
     url.searchParams.set('sala', currentRoomId);
     window.history.pushState({}, '', url);
-    await setupRealtimeSyncColab();
-    showColabNotification('✨ Sala criada!', 'success');
+    await setupRealtimeSync();
+    showNotification('✨ Sala criada! Compartilhe o link.', 'success');
 }
 
-async function loadRoomColab(roomId) {
+async function loadRoomSupabase(roomId) {
     const { data } = await supabaseClient.from('books').select('content').eq('id', roomId).single();
-    if (data) {
+    if (data && data.content) {
         document.getElementById('editor').value = data.content;
-        document.getElementById('roomCode').innerHTML = roomId;
         if (typeof renderizar === 'function') renderizar();
-    } else {
-        await createNewRoomColab();
     }
-    await setupRealtimeSyncColab();
+    document.getElementById('roomCode').innerHTML = roomId;
+    await setupRealtimeSync();
 }
 
-async function setupRealtimeSyncColab() {
+async function setupRealtimeSync() {
     if (!supabaseClient || !currentRoomId) return;
-    supabaseClient.channel(`sala-${currentRoomId}`).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'books', filter: `id=eq.${currentRoomId}` }, (payload) => {
+    supabaseClient.channel(`sala-${currentRoomId}`).on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'books', filter: `id=eq.${currentRoomId}`
+    }, (payload) => {
         const newContent = payload.new.content;
         const editor = document.getElementById('editor');
-        if (editor && editor.value !== newContent && !isTyping) {
+        if (editor && editor.value !== newContent && !isTypingSupabase) {
             editor.value = newContent;
             if (typeof renderizar === 'function') renderizar();
-            showColabNotification('👥 Sincronizado!', 'info');
+            showNotification('👥 Atualizado por outro usuário', 'info');
         }
     }).subscribe();
 }
 
-async function saveToSupabaseColab() {
+async function saveToSupabase() {
     if (!currentRoomId || !supabaseClient) return;
-    await supabaseClient.from('books').update({ content: document.getElementById('editor').value, updated_at: new Date() }).eq('id', currentRoomId);
+    const content = document.getElementById('editor').value;
+    await supabaseClient.from('books').update({ content: content, updated_at: new Date() }).eq('id', currentRoomId);
 }
 
-function syncWhileTypingColab() {
+function handleTyping() {
     if (syncTimeout) clearTimeout(syncTimeout);
-    isTyping = true;
-    syncTimeout = setTimeout(() => { saveToSupabaseColab(); isTyping = false; }, 1000);
+    isTypingSupabase = true;
+    syncTimeout = setTimeout(() => { saveToSupabase(); isTypingSupabase = false; }, 1000);
 }
 
 function copyRoomLink() {
-    const url = `${window.location.origin}${window.location.pathname.replace('.html', '')}visualizador.html?sala=${currentRoomId}`;
+    const visualizadorUrl = window.location.href.replace('editor.html', 'visualizador.html');
+    const url = visualizadorUrl.split('?')[0] + `?sala=${currentRoomId}`;
     navigator.clipboard.writeText(url);
-    showColabNotification('📋 Link para alunos copiado!', 'success');
+    showNotification('📋 Link do visualizador copiado!', 'success');
 }
 
-// Sobrescrever a função de input do editor para incluir sync
-const originalEditorListener = document.getElementById('editor').oninput;
-document.getElementById('editor').addEventListener('input', function() {
-    if (typeof syncWhileTypingColab === 'function') syncWhileTypingColab();
+// Adicionar evento de input para sincronizar enquanto digita
+const editorElement = document.getElementById('editor');
+if (editorElement) {
+    editorElement.addEventListener('input', function() {
+        if (typeof handleTyping === 'function') handleTyping();
+    });
+}
+
+// Iniciar Supabase após carregar tudo
+window.addEventListener('load', function() {
+    setTimeout(initSupabase, 500);
 });
 
-// Iniciar colaboração quando a página carregar
-document.addEventListener('DOMContentLoaded', function() {
-    initSupabaseColab();
-});
-
-// Botão de tela cheia GLOBAL
+// Botão de tela cheia GLOBAL (original já existe, mas vamos manter compatibilidade)
 const globalBtn = document.getElementById('globalFullscreenBtn');
 if (globalBtn) {
     globalBtn.addEventListener('click', function() {
@@ -644,9 +656,185 @@ if (globalBtn) {
         }
     });
 }
-
-console.log('✅ Colaboração do Supabase ativada!');
 </script>
 
+<script>
+// ============================================
+// FUNÇÃO PARA INSERIR ACORDE POR NÚMERO (original)
+// ============================================
+function inserirAcordePorNumero() {
+    const inputField = document.getElementById('buscaAcordeRapida');
+    if (!inputField) {
+        console.error("❌ Campo buscaAcordeRapida não encontrado!");
+        return;
+    }
+    
+    const numero = inputField.value;
+    
+    if (!numero || numero < 1) {
+        console.log("⚠️ Número inválido:", numero);
+        return;
+    }
+    
+    // Busca o nome do acorde
+    let nomeAcorde = null;
+    
+    if (typeof ACORDES !== 'undefined' && ACORDES[numero]) {
+        nomeAcorde = ACORDES[numero].nome;
+    }
+    
+    if (!nomeAcorde && typeof bibliotecaAcordes !== 'undefined' && bibliotecaAcordes[numero]) {
+        nomeAcorde = bibliotecaAcordes[numero].nome;
+    }
+    
+    if (!nomeAcorde && typeof FORMAS_INFINITAS !== 'undefined' && FORMAS_INFINITAS[numero]) {
+        nomeAcorde = FORMAS_INFINITAS[numero].nome;
+    }
+    
+    if (!nomeAcorde && typeof window.processarAcordeDinamico === 'function') {
+        const acordeTemp = window.processarAcordeDinamico(numero, '');
+        if (acordeTemp && acordeTemp.nome) {
+            nomeAcorde = acordeTemp.nome;
+        }
+    }
+    
+    if (!nomeAcorde) {
+        console.error(`❌ Acorde ${numero} não encontrado!`);
+        alert(`❌ Acorde ${numero} não encontrado!`);
+        return;
+    }
+    
+    // Gera o código
+    const codigoFinal = `[Acorde:${numero};1]${nomeAcorde}[/Acorde]`;
+    
+    // Insere no editor
+    const editor = document.getElementById('editor');
+    if (!editor) return;
+    
+    const start = editor.selectionStart;
+    editor.value = editor.value.substring(0, start) + codigoFinal + editor.value.substring(start);
+    
+    // Atualiza a visualização
+    if (typeof renderizar === 'function') renderizar();
+    if (typeof salvarAulaAtual === 'function') salvarAulaAtual();
+    
+    // Limpa o campo
+    inputField.value = '';
+    editor.focus();
+}
+
+// ============================================
+// FUNÇÃO COPIAR EDITOR (original)
+// ============================================
+function copiarEditor() {
+    const editor = document.getElementById('editor');
+    if (!editor) {
+        console.error('Editor não encontrado');
+        return;
+    }
+    
+    editor.select();
+    editor.setSelectionRange(0, editor.value.length);
+    
+    try {
+        const sucesso = document.execCommand('copy');
+        if (sucesso) {
+            // Feedback visual
+            const btn = event?.target;
+            if (btn) {
+                const textoOriginal = btn.textContent;
+                btn.textContent = '✅ Copiado!';
+                setTimeout(() => {
+                    btn.textContent = textoOriginal;
+                }, 1500);
+            }
+            console.log('✅ Texto copiado!');
+        } else {
+            console.error('Falha ao copiar');
+        }
+    } catch (err) {
+        console.error('Erro ao copiar:', err);
+    }
+    
+    editor.focus();
+}
+
+// ============================================
+// FUNÇÃO COLAR EDITOR (original)
+// ============================================
+function colarEditor() {
+    const editor = document.getElementById('editor');
+    if (!editor) {
+        console.error('Editor não encontrado');
+        return;
+    }
+    
+    editor.focus();
+    
+    // Método 1: Usar Clipboard API
+    if (navigator.clipboard && navigator.clipboard.readText) {
+        navigator.clipboard.readText()
+            .then(text => {
+                if (text) {
+                    const start = editor.selectionStart;
+                    const end = editor.selectionEnd;
+                    const currentText = editor.value;
+                    editor.value = currentText.substring(0, start) + text + currentText.substring(end);
+                    
+                    if (typeof renderizar === 'function') renderizar();
+                    if (typeof salvarAulaAtual === 'function') salvarAulaAtual();
+                    
+                    // Feedback visual
+                    const btn = event?.target;
+                    if (btn) {
+                        const textoOriginal = btn.textContent;
+                        btn.textContent = '✅ Colado!';
+                        setTimeout(() => {
+                            btn.textContent = textoOriginal;
+                        }, 1500);
+                    }
+                    
+                    console.log('✅ Texto colado!');
+                }
+            })
+            .catch(err => {
+                console.log('Clipboard API falhou, usando método alternativo:', err);
+                colarComPrompt(editor);
+            });
+    } else {
+        colarComPrompt(editor);
+    }
+}
+
+// Método alternativo usando prompt (funciona sempre)
+function colarComPrompt(editor) {
+    const textoColado = prompt('📋 Cole o texto aqui (Ctrl+V):');
+    
+    if (textoColado !== null && textoColado !== '') {
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+        editor.value = editor.value.substring(0, start) + textoColado + editor.value.substring(end);
+        
+        if (typeof renderizar === 'function') renderizar();
+        if (typeof salvarAulaAtual === 'function') salvarAulaAtual();
+        
+        editor.focus();
+        
+        // Feedback visual
+        const btn = event?.target;
+        if (btn) {
+            const textoOriginal = btn.textContent;
+            btn.textContent = '✅ Colado!';
+            setTimeout(() => {
+                btn.textContent = textoOriginal;
+            }, 1500);
+        }
+        
+        console.log('✅ Texto colado via prompt!');
+    }
+}
+
+console.log('✅ Funções de Copiar/Colar carregadas!');
+</script>
 </body>
 </html>
