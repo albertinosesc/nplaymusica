@@ -2,12 +2,9 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Pro Maestro - Sistema Completo com Supabase</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Pro Maestro - Editor com Colaboração</title>
 
-<!-- Bibliotecas Externas -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/abcjs/6.2.2/abcjs-basic-min.js"></script>
@@ -40,12 +37,6 @@
         border-radius: 8px;
         cursor: pointer;
         font-size: 20px;
-        transition: all 0.3s;
-    }
-    
-    .toggle-sidebar:hover {
-        background: #c7354f;
-        transform: scale(1.05);
     }
     
     #sidebar {
@@ -59,23 +50,12 @@
         transition: 0.3s;
         z-index: 1000;
         overflow-y: auto;
-        box-shadow: 2px 0 10px rgba(0,0,0,0.3);
     }
     
-    #sidebar.active {
-        left: 0;
-    }
+    #sidebar.active { left: 0; }
     
-    .sidebar-content {
-        padding: 20px;
-    }
-    
-    .sidebar-content h2 {
-        color: #e94560;
-        margin-bottom: 20px;
-        text-align: center;
-    }
-    
+    .sidebar-content { padding: 20px; }
+    .sidebar-content h2 { color: #e94560; margin-bottom: 20px; text-align: center; }
     .sidebar-content button {
         width: 100%;
         margin: 5px 0;
@@ -85,64 +65,17 @@
         border: none;
         border-radius: 5px;
         cursor: pointer;
-        transition: all 0.2s;
     }
+    .sidebar-content button:hover { background: #e94560; }
     
-    .sidebar-content button:hover {
-        background: #e94560;
-        transform: translateX(5px);
-    }
-    
-    .menu-categoria {
-        margin: 15px 0;
-        border-top: 1px solid #333;
-    }
-    
-    .menu-categoria h4 {
-        padding: 10px 0;
-        cursor: pointer;
-        color: #e94560;
-    }
-    
-    .categoria-content {
-        display: none;
-        padding-left: 10px;
-    }
-    
-    .menu-categoria.expanded .categoria-content {
-        display: block;
-    }
-    
-    .control-group-sidebar {
-        margin: 15px 0;
-    }
-    
-    .control-group-sidebar label {
-        display: block;
-        font-size: 12px;
-        margin-bottom: 5px;
-        color: #aaa;
-    }
-    
-    .control-group-sidebar input {
-        width: 100%;
-        padding: 5px;
-        background: #0f3460;
-        border: none;
-        border-radius: 5px;
-        color: white;
-    }
+    .menu-categoria { margin: 15px 0; border-top: 1px solid #333; }
+    .menu-categoria h4 { padding: 10px 0; cursor: pointer; color: #e94560; }
+    .categoria-content { display: none; padding-left: 10px; }
+    .menu-categoria.expanded .categoria-content { display: block; }
     
     /* Main */
-    #main {
-        margin-left: 0;
-        transition: 0.3s;
-        padding: 20px;
-    }
-    
-    #main.sidebar-active {
-        margin-left: 320px;
-    }
+    #main { margin-left: 0; transition: 0.3s; padding: 20px; }
+    #main.sidebar-active { margin-left: 320px; }
     
     .toolbar {
         background: #1a1a2e;
@@ -161,13 +94,8 @@
         padding: 8px 15px;
         border-radius: 5px;
         cursor: pointer;
-        transition: all 0.2s;
     }
-    
-    .toolbar button:hover {
-        background: #e94560;
-        transform: translateY(-2px);
-    }
+    .toolbar button:hover { background: #e94560; }
     
     .editor-container {
         display: flex;
@@ -199,28 +127,55 @@
         overflow-y: auto;
     }
     
-    .fullscreen-btn {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #3a86ff;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-        cursor: pointer;
-        z-index: 1000;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    /* ========== CSS QUE FUNCIONA PARA PARTITURAS ========== */
+    .score svg {
+        transform: scale(1.7);
+        transform-origin: top left;
+        overflow: visible;
     }
     
-    .fullscreen-btn:hover {
-        background: #e94560;
-        transform: scale(1.05);
+    /* Move as cifras (acordes) para baixo */
+    .score svg .abcjs-chord {
+        transform: translate(1px, 30px);
+        fill: red;
     }
     
-    .room-info-bar {
+    /* Tamanho das cifras */
+    .score svg .abcjs-chord tspan {
+        font-size: 24px !important;
+        font-weight: bold;
+    }
+    
+    /* Barras de compasso */
+    .score svg .abcjs-bar {
+        stroke-width: 2px;
+        stroke: black;
+    }
+    
+    /* Aproxima o andamento do pentagrama */
+    .score svg .abcjs-tempo {
+        transform: translate(-48px, 30px);
+    }
+    
+    /* Cores das notas */
+    .score svg .abcjs-note {
+        fill: #2c3e50;
+    }
+    
+    .chord-notation {
+        font-family: monospace;
+        line-height: 3;
+        margin: 20px 0;
+        padding: 10px;
+        background: #f8f8f8;
+        border-left: 3px solid #e94560;
+    }
+    
+    .lyric { position: relative; display: inline-block; }
+    .chord { position: absolute; top: -20px; left: 0; font-weight: bold; }
+    
+    /* Barra de status online */
+    .online-stats {
         background: #0f3460;
         padding: 8px 15px;
         border-radius: 8px;
@@ -247,9 +202,16 @@
         border-radius: 50%;
         margin-right: 8px;
     }
-    
     .status.online { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
     .status.offline { background: #e74c3c; }
+    
+    .user-count {
+        background: #e94560;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: bold;
+    }
     
     .notification {
         position: fixed;
@@ -268,11 +230,20 @@
         to { opacity: 1; transform: translateX(0); }
     }
     
-    .score { margin: 20px 0; }
-    .chord-notation { font-family: monospace; line-height: 3; margin: 20px 0; padding: 10px; background: #f8f8f8; border-left: 3px solid #e94560; }
-    .lyric { position: relative; display: inline-block; }
-    .chord { position: absolute; top: -20px; left: 0; font-weight: bold; }
-    img { max-width: 100%; margin: 10px 0; }
+    .fullscreen-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #3a86ff;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+        cursor: pointer;
+        z-index: 1000;
+    }
     
     @media (max-width: 768px) {
         #main.sidebar-active { margin-left: 0; }
@@ -288,15 +259,13 @@
     <div class="sidebar-content">
         <h2>🎸 Pro Maestro</h2>
         
-        <div class="room-info-bar" style="background: #0f3460; margin-bottom: 15px;">
-            <div style="font-size: 12px;">📚 Sala: <span class="room-code" id="roomCode">---</span></div>
+        <div class="online-stats" style="background: #0f3460; margin-bottom: 15px;">
             <div><span class="status offline" id="statusDot"></span><span id="statusText">Offline</span></div>
-            <button onclick="copyRoomLink()" style="background: #e94560; padding: 5px 10px; font-size: 11px;">📋 Copiar Link</button>
-            <button onclick="createNewRoom()" style="background: #2ecc71; padding: 5px 10px; font-size: 11px;">➕ Nova</button>
+            <div class="user-count" id="userCount">👥 0 online</div>
+            <button onclick="copyRoomLink()" style="background: #e94560; padding: 5px 10px;">📋 Copiar Link</button>
         </div>
         
-        <button onclick="saveToSupabase()">💾 Salvar no Cloud</button>
-        <button onclick="exportHTML()">📄 Exportar Aula (HTML)</button>
+        <button onclick="saveToSupabase()">💾 Salvar</button>
         <button onclick="downloadTXT()">📝 Baixar TXT</button>
         <button onclick="downloadPDF()">📄 Baixar PDF</button>
         
@@ -309,19 +278,11 @@
             </div>
         </div>
 
-        <div class="menu-categoria collapsed" id="menu-enfase">
-            <h4 onclick="toggleCategoria('menu-enfase')">🎨 Ênfase ▼</h4>
-            <div class="categoria-content">
-                <button onclick="addFormatacao('**', '**')">Negrito</button>
-                <button onclick="addFormatacao('*', '*')">Itálico</button>
-            </div>
-        </div>
-
         <div class="menu-categoria collapsed" id="menu-partituras">
             <h4 onclick="toggleCategoria('menu-partituras')">🎵 Partituras ▼</h4>
             <div class="categoria-content">
                 <button onclick="inserirABC()">🎵 Partitura Normal</button>
-                <button onclick="inserirABCInfantil()">🎨 Partitura Infantil</button>
+                <button onclick="inserirABCExemplo()">🎵 Exemplo "Ele é Exaltado"</button>
             </div>
         </div>
     </div>
@@ -333,9 +294,7 @@
         <button onclick="addFormatacao('## ', '')">H2</button>
         <button onclick="addFormatacao('**', '**')">B</button>
         <button onclick="addFormatacao('*', '*')">I</button>
-        <button onclick="addFormatacao('- ', '')">•</button>
         <button onclick="inserirABC()">🎵</button>
-        <button onclick="inserirImagem()">🖼️</button>
         <button onclick="copiarEditor()">📋 Copiar</button>
         <button onclick="colarEditor()">📄 Colar</button>
     </div>
@@ -357,6 +316,8 @@ let supabaseClient = null;
 let currentRoomId = null;
 let syncTimeout = null;
 let isTyping = false;
+let userId = null;
+let heartbeatInterval = null;
 
 // =========== SUPABASE FUNCTIONS ==========
 async function initSupabase() {
@@ -369,6 +330,13 @@ async function initSupabase() {
         updateConnectionStatus(true);
         showNotification('✅ Conectado ao Supabase!', 'success');
         
+        // Gerar ID único do usuário
+        userId = localStorage.getItem('userId');
+        if (!userId) {
+            userId = 'user_' + Math.random().toString(36).substring(2, 10);
+            localStorage.setItem('userId', userId);
+        }
+        
         const urlParams = new URLSearchParams(window.location.search);
         const roomFromURL = urlParams.get('sala');
         
@@ -378,10 +346,59 @@ async function initSupabase() {
         } else {
             await createNewRoom();
         }
+        
+        // Iniciar heartbeat (atualiza presença a cada 30 segundos)
+        startHeartbeat();
+        // Buscar contagem de usuários a cada 10 segundos
+        setInterval(() => updateUserCount(), 10000);
+        
     } catch (error) {
         console.error('Erro:', error);
         updateConnectionStatus(false);
         showNotification('❌ Erro de conexão: ' + error.message, 'error');
+    }
+}
+
+async function startHeartbeat() {
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    
+    heartbeatInterval = setInterval(async () => {
+        if (currentRoomId && supabaseClient) {
+            await supabaseClient
+                .from('collaborations')
+                .upsert({
+                    book_id: currentRoomId,
+                    user_name: userId,
+                    last_activity: new Date()
+                });
+        }
+    }, 30000);
+    
+    // Primeiro heartbeat imediato
+    if (currentRoomId && supabaseClient) {
+        await supabaseClient
+            .from('collaborations')
+            .upsert({
+                book_id: currentRoomId,
+                user_name: userId,
+                last_activity: new Date()
+            });
+    }
+}
+
+async function updateUserCount() {
+    if (!currentRoomId || !supabaseClient) return;
+    
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+    const { count, error } = await supabaseClient
+        .from('collaborations')
+        .select('*', { count: 'exact', head: true })
+        .eq('book_id', currentRoomId)
+        .gt('last_activity', twoMinutesAgo.toISOString());
+    
+    if (!error) {
+        const userCount = count || 1;
+        document.getElementById('userCount').innerHTML = `👥 ${userCount} online`;
     }
 }
 
@@ -391,8 +408,6 @@ async function createNewRoom() {
     
     const exampleContent = `# 🎵 Bem-vindo ao Pro Maestro Colaborativo!
 
-Este é um exemplo de **notação musical** usando ABC:
-
 [ABC]
 X:1
 M:4/4
@@ -401,9 +416,7 @@ K:C
 "C"CDEF GABc | "G7"BAGF E2D2 |]
 [/ABC]
 
-## ✨ Compartilhe este link com seus alunos!
-
-Edite este texto e veja a magica acontecer em tempo real.`;
+Edite este texto e veja a mágica acontecer em tempo real.`;
     
     const { error } = await supabaseClient.from('books').insert([{
         id: currentRoomId,
@@ -458,7 +471,7 @@ async function setupRealtimeSync() {
             if (editor.value !== newContent && !isTyping) {
                 editor.value = newContent;
                 renderizar();
-                showNotification('👥 Sincronizado com outro usuário!', 'info');
+                showNotification('👥 Sincronizado!', 'info');
             }
         })
         .subscribe();
@@ -466,10 +479,8 @@ async function setupRealtimeSync() {
 
 async function saveToSupabase() {
     if (!currentRoomId || !supabaseClient) return;
-    
     const content = document.getElementById('editor').value;
-    const { error } = await supabaseClient.from('books').update({ content: content, updated_at: new Date() }).eq('id', currentRoomId);
-    if (error) console.error('Erro ao salvar:', error);
+    await supabaseClient.from('books').update({ content: content, updated_at: new Date() }).eq('id', currentRoomId);
 }
 
 function syncWhileTyping() {
@@ -561,8 +572,7 @@ function addFormatacao(prefixo, sufixo) {
     const start = editor.selectionStart;
     const end = editor.selectionEnd;
     const textoSelecionado = editor.value.substring(start, end);
-    const novoTexto = editor.value.substring(0, start) + prefixo + textoSelecionado + sufixo + editor.value.substring(end);
-    editor.value = novoTexto;
+    editor.value = editor.value.substring(0, start) + prefixo + textoSelecionado + sufixo + editor.value.substring(end);
     renderizar();
     syncWhileTyping();
 }
@@ -582,31 +592,28 @@ CDEF GABc | BAGF E2D2 |]
     syncWhileTyping();
 }
 
-function inserirABCInfantil() {
-    const abcInfantil = `[ABC]
-X:2
-M:4/4
-L:1/4
-K:C
-"^🐶" C C G G | A A G2 | "^🐱" F F E E | D D C2 |]
-[/ABC]\n`;
+function inserirABCExemplo() {
+    const abcExample = `# 🎵 Ele é Exaltado
+
+[ABC]
+X:1
+T:Ele é Exaltado
+C:Adhemar de Campos
+M:6/8
+L:1/8
+K:F stafflines=1
+"F"z6 | "F/A"z6 | "Bb"z6 | "Dm"z3 "C/E"z3 | "F"z6 | "F/A"z6 |
+"Bb"z3 "C"z3 | "Bb/D"z3 "C/E"z3 | "D/F#"z6 | z6 |:"Gm"z3 "Gm/F"z3 |
+"C/E"z3 "C"z3 | "F"z3 "F/A"z3 | "Bb"z3 "F/A"z3 | "Gm"z3 "Gm/F"z3 | "C/E"z3 "C"z3 |
+"F"z3 "F/A"z3 | "D4"z3 "D7"z3 | "Gm"z3 "Gm/F"z3 | "C/E"z3 "C"z3 |1 "F"z6 |
+z6 :|]2 "F"z3 "F/A"z3 || "D4"z3 "D7"z3 | "Gm"z3 "Gm/F"z3 | "C/E"z3 "C"z3 | 
+"F"z3 "F/A"z3 | "D4"z3 "D7"z3 | "Gm"z3 "Gm/F"z3 | "C/E"z3 "C"z3 | "F"z6 | z6 |]
+[/ABC]`;
     const editor = document.getElementById('editor');
     const cursorPos = editor.selectionStart;
-    editor.value = editor.value.slice(0, cursorPos) + abcInfantil + editor.value.slice(editor.selectionEnd);
+    editor.value = editor.value.slice(0, cursorPos) + abcExample + editor.value.slice(editor.selectionEnd);
     renderizar();
     syncWhileTyping();
-}
-
-function inserirImagem() {
-    const url = prompt("Digite a URL da imagem:");
-    if (url) {
-        const imgTag = `[IMG]{"src":"${url}","alt":"Imagem"}[/IMG]\n`;
-        const editor = document.getElementById('editor');
-        const cursorPos = editor.selectionStart;
-        editor.value = editor.value.slice(0, cursorPos) + imgTag + editor.value.slice(editor.selectionEnd);
-        renderizar();
-        syncWhileTyping();
-    }
 }
 
 function copiarEditor() {
@@ -640,17 +647,6 @@ function colarEditor() {
     }
 }
 
-function exportHTML() {
-    const content = document.getElementById('preview').innerHTML;
-    const html = `<!DOCTYPE html><html><head><title>Pro Maestro</title><script src="https://cdnjs.cloudflare.com/ajax/libs/abcjs/6.2.2/abcjs-basic-min.js"><\/script><style>body{margin:20px;font-family:Arial}.score{margin:20px 0}img{max-width:100%}</style></head><body>${content}</body></html>`;
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `pro_maestro_${currentRoomId}.html`;
-    a.click();
-}
-
 function downloadTXT() {
     const text = document.getElementById('editor').value;
     const blob = new Blob([text], { type: 'text/plain' });
@@ -675,8 +671,7 @@ function toggleSidebar() {
 }
 
 function toggleCategoria(id) {
-    const element = document.getElementById(id);
-    element.classList.toggle('expanded');
+    document.getElementById(id).classList.toggle('expanded');
 }
 
 function toggleFullscreenPreview() {
