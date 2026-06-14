@@ -25,7 +25,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>🎵 Editor Mddad</h1>
+        <h1>🎵 Editor Musical qqqqq</h1>
         <div style="display: flex; gap: 15px; align-items: center;">
             <div class="room-code">📚 Sala: <strong id="roomCode">---</strong></div>
             <div><span class="status offline" id="statusDot"></span><span id="statusText">Offline</span></div>
@@ -49,7 +49,7 @@
         const SUPABASE_URL = 'https://unqbbyejjbyiysgvwrrj.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVucWJieWVqamJ5aXlzZ3Z3cnJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzODU1NjMsImV4cCI6MjA5Njk2MTU2M30.l-S9Cb2AnW1gX6iL-7aEghHvnH4ykJ_X7oeNn7z932I';
         
-        let supabase;
+        let client = null;  // Mudado de 'supabase' para 'client'
         let salaId = null;
         let temporizador = null;
         let digitando = false;
@@ -58,10 +58,10 @@
             try {
                 mostrarNotificacao('🟡 Conectando...', 'info');
                 
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 
                 // Teste de conexão
-                const { error } = await supabase.from('books').select('count', { count: 'exact', head: true });
+                const { error } = await client.from('books').select('count', { count: 'exact', head: true });
                 if (error) throw error;
                 
                 document.getElementById('statusDot').className = 'status online';
@@ -82,7 +82,7 @@
                 console.error(erro);
                 document.getElementById('statusDot').className = 'status offline';
                 document.getElementById('statusText').innerHTML = 'Offline';
-                mostrarNotificacao('❌ Erro de conexão: ' + erro.message, 'error');
+                mostrarNotificacao('❌ Erro: ' + erro.message, 'error');
             }
         }
         
@@ -103,7 +103,7 @@ CDEF GABc | BAGF E2D2 |]
 ✨ Edite este texto em tempo real!
 Compartilhe o link com seus amigos.`;
             
-            const { error } = await supabase.from('books').insert([{
+            const { error } = await client.from('books').insert([{
                 id: salaId,
                 content: conteudoExemplo,
                 created_at: new Date(),
@@ -129,7 +129,7 @@ Compartilhe o link com seus amigos.`;
         }
         
         async function carregarSala(id) {
-            const { data, error } = await supabase.from('books').select('content').eq('id', id).single();
+            const { data, error } = await client.from('books').select('content').eq('id', id).single();
             
             if (error || !data) {
                 mostrarNotificacao('⚠️ Sala não encontrada, criando nova...', 'info');
@@ -145,7 +145,7 @@ Compartilhe o link com seus amigos.`;
         }
         
         async function configurarSincronizacao() {
-            const canal = supabase.channel(`sala-${salaId}`)
+            const canal = client.channel(`sala-${salaId}`)
                 .on('postgres_changes', {
                     event: 'UPDATE',
                     schema: 'public',
@@ -166,7 +166,7 @@ Compartilhe o link com seus amigos.`;
         async function salvar() {
             if (!salaId) return;
             const conteudo = document.getElementById('editor').value;
-            const { error } = await supabase.from('books').update({ content: conteudo, updated_at: new Date() }).eq('id', salaId);
+            const { error } = await client.from('books').update({ content: conteudo, updated_at: new Date() }).eq('id', salaId);
             if (error) console.error('Erro ao salvar:', error);
         }
         
