@@ -490,9 +490,15 @@ function syncWhileTyping() {
 }
 
 function copyRoomLink() {
-    const url = `${window.location.origin}${window.location.pathname}?sala=${currentRoomId}`;
+    // Link do visualizador (onde os alunos vão acessar)
+    const baseUrl = 'https://albertinosesc.github.io/nplaymusica/visualizador.html';
+    const url = `${baseUrl}?sala=${currentRoomId}`;
+    
     navigator.clipboard.writeText(url);
-    showNotification('📋 Link copiado!', 'success');
+    showNotification('📋 Link para alunos copiado! Envie este link para a turma', 'success');
+    
+    // Opcional: mostrar o link em um alert para confirmar
+    console.log('Link copiado:', url);
 }
 
 function updateConnectionStatus(connected) {
