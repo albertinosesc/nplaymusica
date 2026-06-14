@@ -1,323 +1,397 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editor de Livro com Notação Musical - Colaborativo</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Pro Maestro - Sistema Completo com Supabase</title>
+
+<!-- Bibliotecas Externas -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/abcjs/6.2.2/abcjs-basic-min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
     
-    <!-- Bibliotecas -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/abcjs/6.2.2/abcjs-basic-min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/abc2svg/lib/abc2svg-1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/abc2svg/lib/abc2svg-utf8.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #0f0f1a;
+        overflow-x: hidden;
+    }
     
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: Arial, sans-serif;
-            background: #f0f2f5;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .header h1 { font-size: 1.2rem; }
-        
-        .collaboration-info {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .room-info {
-            background: rgba(255,255,255,0.2);
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-        }
-        
-        .status {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-        }
-        
-        .status.connected { background: #4ade80; box-shadow: 0 0 5px #4ade80; }
-        .status.disconnected { background: #f87171; }
-        
-        .container {
-            display: flex;
-            gap: 20px;
-            padding: 20px;
-            height: calc(100vh - 80px);
-            flex-wrap: wrap;
-        }
-        
-        .editor-column, .preview-column {
-            flex: 1;
-            min-width: 400px;
-            display: flex;
-            flex-direction: column;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        
-        .toolbar {
-            padding: 8px 12px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-        
-        button {
-            padding: 6px 12px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-        
-        button:hover { background: #45a049; }
-        button.primary { background: #667eea; }
-        button.primary:hover { background: #5a67d8; }
-        button.danger { background: #dc3545; }
-        button.danger:hover { background: #c82333; }
-        
-        .formatting-toolbar {
-            padding: 6px 12px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        
-        .formatting-toolbar select, .formatting-toolbar input {
-            padding: 4px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            font-size: 12px;
-        }
-        
-        #editor {
-            flex: 1;
-            width: 100%;
-            padding: 15px;
-            border: none;
-            resize: none;
-            font-size: 14px;
-            line-height: 1.5;
-            font-family: 'Courier New', monospace;
-        }
-        
-        #editor:focus { outline: none; }
-        
-        #preview {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            background: white;
-        }
-        
-        .score { margin: 20px 0; }
-        
-        .chord-notation {
-            font-family: monospace;
-            white-space: pre-wrap;
-            line-height: 3;
-            margin: 20px 0;
-            padding: 10px;
-            background: #f8f8f8;
-            border-left: 3px solid #4CAF50;
-        }
-        
-        .lyric { position: relative; display: inline-block; }
-        .chord { position: absolute; top: -20px; left: 0; font-weight: bold; }
-        
-        .chord-diagram {
-            display: inline-block;
-            margin: 10px;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        img { max-width: 100%; margin: 10px 0; }
-        
-        .notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #333;
-            color: white;
-            padding: 10px 16px;
-            border-radius: 8px;
-            animation: slideIn 0.3s ease;
-            z-index: 10000;
-            font-size: 13px;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        .dot-placeholder {
-            fill: transparent;
-            stroke: #ccc;
-            stroke-dasharray: 3,3;
-            cursor: pointer;
-        }
-        
-        .dot-active {
-            fill: #4CAF50;
-            stroke: none;
-            stroke-dasharray: none;
-        }
-        
-        .dot-text {
-            fill: white;
-            text-anchor: middle;
-            dominant-baseline: middle;
-            font-size: 12px;
-            pointer-events: none;
-        }
-        
-        .barre-line {
-            stroke: #4CAF50;
-            stroke-width: 4;
-            stroke-linecap: round;
-        }
-        
-        @media (max-width: 900px) {
-            .container { flex-direction: column; height: auto; }
-            .editor-column, .preview-column { min-width: auto; }
-        }
-    </style>
+    /* Sidebar */
+    .toggle-sidebar {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1001;
+        background: #e94560;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 20px;
+        transition: all 0.3s;
+    }
+    
+    .toggle-sidebar:hover {
+        background: #c7354f;
+        transform: scale(1.05);
+    }
+    
+    #sidebar {
+        position: fixed;
+        left: -320px;
+        top: 0;
+        width: 320px;
+        height: 100vh;
+        background: #1a1a2e;
+        color: #eee;
+        transition: 0.3s;
+        z-index: 1000;
+        overflow-y: auto;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+    }
+    
+    #sidebar.active {
+        left: 0;
+    }
+    
+    .sidebar-content {
+        padding: 20px;
+    }
+    
+    .sidebar-content h2 {
+        color: #e94560;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .sidebar-content button {
+        width: 100%;
+        margin: 5px 0;
+        padding: 10px;
+        background: #0f3460;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .sidebar-content button:hover {
+        background: #e94560;
+        transform: translateX(5px);
+    }
+    
+    .menu-categoria {
+        margin: 15px 0;
+        border-top: 1px solid #333;
+    }
+    
+    .menu-categoria h4 {
+        padding: 10px 0;
+        cursor: pointer;
+        color: #e94560;
+    }
+    
+    .categoria-content {
+        display: none;
+        padding-left: 10px;
+    }
+    
+    .menu-categoria.expanded .categoria-content {
+        display: block;
+    }
+    
+    .control-group-sidebar {
+        margin: 15px 0;
+    }
+    
+    .control-group-sidebar label {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 5px;
+        color: #aaa;
+    }
+    
+    .control-group-sidebar input {
+        width: 100%;
+        padding: 5px;
+        background: #0f3460;
+        border: none;
+        border-radius: 5px;
+        color: white;
+    }
+    
+    /* Main */
+    #main {
+        margin-left: 0;
+        transition: 0.3s;
+        padding: 20px;
+    }
+    
+    #main.sidebar-active {
+        margin-left: 320px;
+    }
+    
+    .toolbar {
+        background: #1a1a2e;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .toolbar button {
+        background: #0f3460;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .toolbar button:hover {
+        background: #e94560;
+        transform: translateY(-2px);
+    }
+    
+    .editor-container {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    #editor {
+        flex: 1;
+        min-width: 300px;
+        height: 500px;
+        padding: 15px;
+        background: #1a1a2e;
+        color: #eee;
+        border: 1px solid #333;
+        border-radius: 8px;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        resize: vertical;
+    }
+    
+    #preview {
+        flex: 1;
+        min-width: 300px;
+        height: 500px;
+        padding: 15px;
+        background: white;
+        border-radius: 8px;
+        overflow-y: auto;
+    }
+    
+    .fullscreen-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #3a86ff;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+        cursor: pointer;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    
+    .fullscreen-btn:hover {
+        background: #e94560;
+        transform: scale(1.05);
+    }
+    
+    .room-info-bar {
+        background: #0f3460;
+        padding: 8px 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .room-code {
+        font-family: monospace;
+        background: #1a1a2e;
+        padding: 5px 10px;
+        border-radius: 5px;
+        color: #e94560;
+    }
+    
+    .status {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+    
+    .status.online { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
+    .status.offline { background: #e74c3c; }
+    
+    .notification {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: #333;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        z-index: 10000;
+        animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateX(-100%); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    
+    .score { margin: 20px 0; }
+    .chord-notation { font-family: monospace; line-height: 3; margin: 20px 0; padding: 10px; background: #f8f8f8; border-left: 3px solid #e94560; }
+    .lyric { position: relative; display: inline-block; }
+    .chord { position: absolute; top: -20px; left: 0; font-weight: bold; }
+    img { max-width: 100%; margin: 10px 0; }
+    
+    @media (max-width: 768px) {
+        #main.sidebar-active { margin-left: 0; }
+        .editor-container { flex-direction: column; }
+    }
+</style>
 </head>
 <body>
-    <div class="header">
-        <h1>🎵 Editor de Livro Musical - Colaborativo</h1>
-        <div class="collaboration-info">
-            <div class="room-info">📚 Sala: <strong id="roomCode">---</strong></div>
-            <div><span class="status disconnected" id="statusDot"></span><span id="statusText">Offline</span></div>
-            <button onclick="copyRoomLink()" class="primary">📋 Copiar Link</button>
-            <button onclick="createNewRoom()">➕ Nova Sala</button>
-        </div>
-    </div>
-    
-    <div class="container">
-        <div class="editor-column">
-            <div class="toolbar">
-                <button onclick="saveToSupabase()">💾 Salvar</button>
-                <button onclick="clearEditor()" class="danger">🗑️ Limpar</button>
-                <button onclick="importFile()">📂 Importar</button>
-                <button onclick="insertImageTag()">🖼️ Inserir Imagem</button>
-                <button onclick="document.getElementById('imageUpload').click()">📤 Upload Imagem</button>
-                <input type="file" id="fileInput" style="display: none" accept=".html,.txt">
-                <input type="file" id="imageUpload" accept="image/*" style="display: none" onchange="uploadImage()">
-            </div>
-            <div class="formatting-toolbar">
-                <button onclick="applyFormat('bold')"><b>B</b></button>
-                <button onclick="applyFormat('italic')"><i>I</i></button>
-                <button onclick="applyFormat('underline')"><u>U</u></button>
-                <select id="fontFamily" onchange="applyFormat('fontFamily')">
-                    <option value="Arial">Arial</option>
-                    <option value="Times New Roman">Times New Roman</option>
-                    <option value="Courier New">Courier New</option>
-                </select>
-                <select id="fontSize" onchange="applyFormat('fontSize')">
-                    <option value="12px">12px</option>
-                    <option value="14px">14px</option>
-                    <option value="16px" selected>16px</option>
-                    <option value="18px">18px</option>
-                    <option value="20px">20px</option>
-                </select>
-                <input type="color" id="textColor" onchange="applyFormat('color')" value="#000000">
-            </div>
-            <textarea id="editor" placeholder="Digite seu texto aqui. Para notação musical, use [ABC]...[/ABC]. Para cifras, use [CIFRA]...[/CIFRA]"></textarea>
+
+<button class="toggle-sidebar" onclick="toggleSidebar()">☰</button>
+
+<div id="sidebar">
+    <div class="sidebar-content">
+        <h2>🎸 Pro Maestro</h2>
+        
+        <div class="room-info-bar" style="background: #0f3460; margin-bottom: 15px;">
+            <div style="font-size: 12px;">📚 Sala: <span class="room-code" id="roomCode">---</span></div>
+            <div><span class="status offline" id="statusDot"></span><span id="statusText">Offline</span></div>
+            <button onclick="copyRoomLink()" style="background: #e94560; padding: 5px 10px; font-size: 11px;">📋 Copiar Link</button>
+            <button onclick="createNewRoom()" style="background: #2ecc71; padding: 5px 10px; font-size: 11px;">➕ Nova</button>
         </div>
         
-        <div class="preview-column">
-            <div class="toolbar">
-                <button onclick="updatePreview()">🔄 Atualizar</button>
-                <button onclick="downloadPDF()">📄 Baixar PDF</button>
-                <button onclick="downloadHTML()">📥 Baixar HTML</button>
-                <button onclick="downloadTXT()">📝 Baixar TXT</button>
+        <button onclick="saveToSupabase()">💾 Salvar no Cloud</button>
+        <button onclick="exportHTML()">📄 Exportar Aula (HTML)</button>
+        <button onclick="downloadTXT()">📝 Baixar TXT</button>
+        <button onclick="downloadPDF()">📄 Baixar PDF</button>
+        
+        <div class="menu-categoria collapsed" id="menu-estrutura">
+            <h4 onclick="toggleCategoria('menu-estrutura')">📝 Estrutura ▼</h4>
+            <div class="categoria-content">
+                <button onclick="addFormatacao('# ', '')">H1 Título</button>
+                <button onclick="addFormatacao('## ', '')">H2 Título</button>
+                <button onclick="addFormatacao('### ', '')">H3 Título</button>
             </div>
-            <div id="preview"></div>
         </div>
+
+        <div class="menu-categoria collapsed" id="menu-enfase">
+            <h4 onclick="toggleCategoria('menu-enfase')">🎨 Ênfase ▼</h4>
+            <div class="categoria-content">
+                <button onclick="addFormatacao('**', '**')">Negrito</button>
+                <button onclick="addFormatacao('*', '*')">Itálico</button>
+            </div>
+        </div>
+
+        <div class="menu-categoria collapsed" id="menu-partituras">
+            <h4 onclick="toggleCategoria('menu-partituras')">🎵 Partituras ▼</h4>
+            <div class="categoria-content">
+                <button onclick="inserirABC()">🎵 Partitura Normal</button>
+                <button onclick="inserirABCInfantil()">🎨 Partitura Infantil</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="main">
+    <div class="toolbar">
+        <button onclick="addFormatacao('# ', '')">H1</button>
+        <button onclick="addFormatacao('## ', '')">H2</button>
+        <button onclick="addFormatacao('**', '**')">B</button>
+        <button onclick="addFormatacao('*', '*')">I</button>
+        <button onclick="addFormatacao('- ', '')">•</button>
+        <button onclick="inserirABC()">🎵</button>
+        <button onclick="inserirImagem()">🖼️</button>
+        <button onclick="copiarEditor()">📋 Copiar</button>
+        <button onclick="colarEditor()">📄 Colar</button>
     </div>
 
-    <script>
-        // =========== SUPABASE CONFIG ==========
-        const SUPABASE_URL = 'https://unqbbyejjbyiysgvwrrj.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVucWJieWVqamJ5aXlzZ3Z3cnJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzODU1NjMsImV4cCI6MjA5Njk2MTU2M30.l-S9Cb2AnW1gX6iL-7aEghHvnH4ykJ_X7oeNn7z932I';
+    <div class="editor-container">
+        <textarea id="editor" placeholder="Digite seu conteúdo aqui..."></textarea>
+        <div id="preview"></div>
+    </div>
+</div>
+
+<button class="fullscreen-btn" onclick="toggleFullscreenPreview()">⛶</button>
+
+<script>
+// =========== SUPABASE CONFIG ==========
+const SUPABASE_URL = 'https://unqbbyejjbyiysgvwrrj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVucWJieWVqamJ5aXlzZ3Z3cnJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzODU1NjMsImV4cCI6MjA5Njk2MTU2M30.l-S9Cb2AnW1gX6iL-7aEghHvnH4ykJ_X7oeNn7z932I';
+
+let supabaseClient = null;
+let currentRoomId = null;
+let syncTimeout = null;
+let isTyping = false;
+
+// =========== SUPABASE FUNCTIONS ==========
+async function initSupabase() {
+    try {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
-        let supabaseClient = null;
-        let currentRoomId = null;
-        let syncTimeout = null;
-        let isTyping = false;
+        const { error } = await supabaseClient.from('books').select('count', { count: 'exact', head: true });
+        if (error) throw error;
         
-        // =========== FUNÇÕES SUPABASE ==========
-        async function initSupabase() {
-            try {
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                
-                const { error } = await supabaseClient.from('books').select('count', { count: 'exact', head: true });
-                if (error) throw error;
-                
-                updateConnectionStatus(true);
-                showNotification('✅ Conectado ao Supabase!', 'success');
-                
-                const urlParams = new URLSearchParams(window.location.search);
-                const roomFromURL = urlParams.get('sala');
-                
-                if (roomFromURL) {
-                    currentRoomId = roomFromURL;
-                    await loadRoom(currentRoomId);
-                } else {
-                    await createNewRoom();
-                }
-            } catch (error) {
-                console.error('Erro:', error);
-                updateConnectionStatus(false);
-                showNotification('❌ Erro de conexão: ' + error.message, 'error');
-            }
+        updateConnectionStatus(true);
+        showNotification('✅ Conectado ao Supabase!', 'success');
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomFromURL = urlParams.get('sala');
+        
+        if (roomFromURL) {
+            currentRoomId = roomFromURL;
+            await loadRoom(currentRoomId);
+        } else {
+            await createNewRoom();
         }
-        
-        async function createNewRoom() {
-            const newRoomId = Math.random().toString(36).substring(2, 10);
-            currentRoomId = newRoomId;
-            
-            const exampleContent = `🎵 BEM-VINDO AO EDITOR COLABORATIVO!
+    } catch (error) {
+        console.error('Erro:', error);
+        updateConnectionStatus(false);
+        showNotification('❌ Erro de conexão: ' + error.message, 'error');
+    }
+}
+
+async function createNewRoom() {
+    const newRoomId = Math.random().toString(36).substring(2, 10);
+    currentRoomId = newRoomId;
+    
+    const exampleContent = `# 🎵 Bem-vindo ao Pro Maestro Colaborativo!
+
+Este é um exemplo de **notação musical** usando ABC:
 
 [ABC]
 X:1
@@ -327,305 +401,299 @@ K:C
 "C"CDEF GABc | "G7"BAGF E2D2 |]
 [/ABC]
 
-[CIFRA style=color:red,font-size:18px]
-[C] Amor per[C]feito [G] é o [C]dom
-[Am] Doce [F] canção [G] no coração
-[/CIFRA]
+## ✨ Compartilhe este link com seus alunos!
 
-✨ Edite este texto em tempo real!
-Compartilhe o link com seus amigos.`;
-            
-            const { error } = await supabaseClient.from('books').insert([{
-                id: currentRoomId,
-                content: exampleContent,
-                created_at: new Date(),
-                updated_at: new Date()
-            }]);
-            
-            if (error) {
-                showNotification('❌ Erro ao criar sala: ' + error.message, 'error');
-                return;
-            }
-            
-            document.getElementById('editor').value = exampleContent;
-            updatePreview();
-            document.getElementById('roomCode').innerHTML = currentRoomId;
-            
-            const url = new URL(window.location);
-            url.searchParams.set('sala', currentRoomId);
-            window.history.pushState({}, '', url);
-            
-            await setupRealtimeSync();
-            showNotification('✨ Sala criada! Compartilhe o link', 'success');
-        }
-        
-        async function loadRoom(roomId) {
-            const { data, error } = await supabaseClient.from('books').select('content').eq('id', roomId).single();
-            
-            if (error || !data) {
-                showNotification('⚠️ Sala não encontrada, criando nova...', 'info');
-                await createNewRoom();
-                return;
-            }
-            
-            document.getElementById('editor').value = data.content;
-            updatePreview();
-            document.getElementById('roomCode').innerHTML = roomId;
-            await setupRealtimeSync();
-            showNotification('📖 Sala carregada!', 'success');
-        }
-        
-        async function setupRealtimeSync() {
-            const channel = supabaseClient.channel(`sala-${currentRoomId}`)
-                .on('postgres_changes', {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'books',
-                    filter: `id=eq.${currentRoomId}`
-                }, (payload) => {
-                    const newContent = payload.new.content;
-                    const editor = document.getElementById('editor');
-                    if (editor.value !== newContent && !isTyping) {
-                        editor.value = newContent;
-                        updatePreview();
-                        showNotification('👥 Sincronizado com outro usuário!', 'info');
-                    }
-                })
-                .subscribe();
-        }
-        
-        async function saveToSupabase() {
-            if (!currentRoomId || !supabaseClient) return;
-            
-            const content = document.getElementById('editor').value;
-            const { error } = await supabaseClient.from('books').update({ content: content, updated_at: new Date() }).eq('id', currentRoomId);
-            if (error) console.error('Erro ao salvar:', error);
-        }
-        
-        function syncWhileTyping() {
-            if (syncTimeout) clearTimeout(syncTimeout);
-            isTyping = true;
-            syncTimeout = setTimeout(() => { saveToSupabase(); isTyping = false; }, 1000);
-        }
-        
-        function copyRoomLink() {
-            const url = `${window.location.origin}${window.location.pathname}?sala=${currentRoomId}`;
-            navigator.clipboard.writeText(url);
-            showNotification('📋 Link copiado!', 'success');
-        }
-        
-        // =========== FUNÇÕES DO EDITOR (já existentes) ==========
-        function updatePreview() {
-            const text = document.getElementById('editor').value;
-            const preview = document.getElementById('preview');
-            preview.innerHTML = '';
-            
-            const segments = text.split(/(\[ABC\][\s\S]*?\[\/ABC\]|\[CIFRA[^\]]*\][\s\S]*?\[\/CIFRA\]|\[IMG\][\s\S]*?\[\/IMG\]|\[DCORDA\][\s\S]*?\[\/DCORDA\])/g);
-            
-            segments.forEach(segment => {
-                if (segment.startsWith('[ABC]') && segment.endsWith('[/ABC]')) {
-                    const abcNotation = segment.slice(5, -6).trim();
-                    const div = document.createElement('div');
-                    div.className = 'score';
-                    preview.appendChild(div);
-                    try {
-                        ABCJS.renderAbc(div, abcNotation, { responsive: 'resize', staffwidth: 800, scale: 1.5 });
-                    } catch (e) {
-                        div.innerHTML = '<p style="color: red">Erro na notação musical ABC</p>';
-                    }
-                } else if (segment.startsWith('[CIFRA') && segment.endsWith('[/CIFRA]')) {
-                    const cifraDiv = document.createElement('div');
-                    cifraDiv.className = 'chord-notation';
-                    
-                    let styles = {};
-                    const styleMatch = segment.match(/\[CIFRA\s+style\s*=\s*([^\]]+)\]/);
-                    if (styleMatch) {
-                        const styleStr = styleMatch[1];
-                        styleStr.split(',').forEach(style => {
-                            const [prop, value] = style.split(':').map(s => s.trim());
-                            styles[prop] = value.replace(/["']/g, '');
-                        });
-                        segment = segment.replace(/\[CIFRA\s+style\s*=\s*[^\]]+\]/, '[CIFRA]');
-                    }
-                    
-                    const cifraText = segment.slice(segment.indexOf(']') + 1, -8).trim();
-                    const lines = cifraText.split('\n');
-                    const processedLines = lines.map(line => {
-                        return line.replace(/\[([^\]]+)\]([^\[]+)?/g, (match, chord, text) => {
-                            text = text || '';
-                            let styleStr = '';
-                            if (Object.keys(styles).length > 0) {
-                                const safeStyles = Object.entries(styles).map(([k,v]) => `${k}:${v}`).join(';');
-                                styleStr = ` style="${safeStyles}"`;
-                            }
-                            return `<span class="lyric"><span class="chord"${styleStr}>${chord}</span>${text}</span>`;
-                        });
-                    });
-                    cifraDiv.innerHTML = processedLines.join('\n');
-                    preview.appendChild(cifraDiv);
-                } else if (segment.startsWith('[IMG]') && segment.endsWith('[/IMG]')) {
-                    const imgData = segment.slice(5, -6).trim();
-                    const img = document.createElement('img');
-                    try {
-                        const imgInfo = JSON.parse(imgData);
-                        img.src = imgInfo.src;
-                        img.alt = imgInfo.alt || 'Imagem';
-                        preview.appendChild(img);
-                    } catch (e) {
-                        preview.appendChild(document.createTextNode(segment));
-                    }
-                } else if (segment.startsWith('[DCORDA]') && segment.endsWith('[/DCORDA]')) {
-                    const div = document.createElement('div');
-                    div.className = 'chord-diagram';
-                    div.textContent = '🎸 Diagrama de acorde';
-                    preview.appendChild(div);
-                } else if (segment.trim()) {
-                    const div = document.createElement('div');
-                    div.innerHTML = segment.replace(/\n/g, '<br>');
-                    preview.appendChild(div);
-                }
-            });
-        }
-        
-        function applyFormat(type) {
+Edite este texto e veja a magica acontecer em tempo real.`;
+    
+    const { error } = await supabaseClient.from('books').insert([{
+        id: currentRoomId,
+        content: exampleContent,
+        created_at: new Date(),
+        updated_at: new Date()
+    }]);
+    
+    if (error) {
+        showNotification('❌ Erro ao criar sala: ' + error.message, 'error');
+        return;
+    }
+    
+    document.getElementById('editor').value = exampleContent;
+    renderizar();
+    document.getElementById('roomCode').innerHTML = currentRoomId;
+    
+    const url = new URL(window.location);
+    url.searchParams.set('sala', currentRoomId);
+    window.history.pushState({}, '', url);
+    
+    await setupRealtimeSync();
+    showNotification('✨ Sala criada! Compartilhe o link', 'success');
+}
+
+async function loadRoom(roomId) {
+    const { data, error } = await supabaseClient.from('books').select('content').eq('id', roomId).single();
+    
+    if (error || !data) {
+        showNotification('⚠️ Sala não encontrada, criando nova...', 'info');
+        await createNewRoom();
+        return;
+    }
+    
+    document.getElementById('editor').value = data.content;
+    renderizar();
+    document.getElementById('roomCode').innerHTML = roomId;
+    await setupRealtimeSync();
+    showNotification('📖 Sala carregada!', 'success');
+}
+
+async function setupRealtimeSync() {
+    const channel = supabaseClient.channel(`sala-${currentRoomId}`)
+        .on('postgres_changes', {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'books',
+            filter: `id=eq.${currentRoomId}`
+        }, (payload) => {
+            const newContent = payload.new.content;
             const editor = document.getElementById('editor');
+            if (editor.value !== newContent && !isTyping) {
+                editor.value = newContent;
+                renderizar();
+                showNotification('👥 Sincronizado com outro usuário!', 'info');
+            }
+        })
+        .subscribe();
+}
+
+async function saveToSupabase() {
+    if (!currentRoomId || !supabaseClient) return;
+    
+    const content = document.getElementById('editor').value;
+    const { error } = await supabaseClient.from('books').update({ content: content, updated_at: new Date() }).eq('id', currentRoomId);
+    if (error) console.error('Erro ao salvar:', error);
+}
+
+function syncWhileTyping() {
+    if (syncTimeout) clearTimeout(syncTimeout);
+    isTyping = true;
+    syncTimeout = setTimeout(() => { saveToSupabase(); isTyping = false; }, 1000);
+}
+
+function copyRoomLink() {
+    const url = `${window.location.origin}${window.location.pathname}?sala=${currentRoomId}`;
+    navigator.clipboard.writeText(url);
+    showNotification('📋 Link copiado!', 'success');
+}
+
+function updateConnectionStatus(connected) {
+    const dot = document.getElementById('statusDot');
+    const text = document.getElementById('statusText');
+    if (connected) {
+        dot.className = 'status online';
+        text.innerHTML = 'Online';
+    } else {
+        dot.className = 'status offline';
+        text.innerHTML = 'Offline';
+    }
+}
+
+function showNotification(message, type) {
+    const div = document.createElement('div');
+    div.className = 'notification';
+    div.style.background = type === 'error' ? '#e74c3c' : (type === 'info' ? '#3498db' : '#2ecc71');
+    div.textContent = message;
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 3000);
+}
+
+// =========== EDITOR FUNCTIONS ==========
+function renderizar() {
+    const text = document.getElementById('editor').value;
+    const preview = document.getElementById('preview');
+    preview.innerHTML = '';
+    
+    const segments = text.split(/(\[ABC\][\s\S]*?\[\/ABC\]|\[CIFRA[^\]]*\][\s\S]*?\[\/CIFRA\]|\[IMG\][\s\S]*?\[\/IMG\])/g);
+    
+    segments.forEach(segment => {
+        if (segment.startsWith('[ABC]') && segment.endsWith('[/ABC]')) {
+            const abcNotation = segment.slice(5, -6).trim();
+            const div = document.createElement('div');
+            div.className = 'score';
+            preview.appendChild(div);
+            try {
+                ABCJS.renderAbc(div, abcNotation, { responsive: 'resize', staffwidth: 800, scale: 1.5 });
+            } catch (e) {
+                div.innerHTML = '<p style="color: red">Erro na notação musical ABC</p>';
+            }
+        } else if (segment.startsWith('[CIFRA') && segment.endsWith('[/CIFRA]')) {
+            const cifraDiv = document.createElement('div');
+            cifraDiv.className = 'chord-notation';
+            const cifraText = segment.slice(segment.indexOf(']') + 1, -8).trim();
+            const processedLines = cifraText.split('\n').map(line => {
+                return line.replace(/\[([^\]]+)\]([^\[]+)?/g, (match, chord, text) => {
+                    text = text || '';
+                    return `<span class="lyric"><span class="chord">${chord}</span>${text}</span>`;
+                });
+            });
+            cifraDiv.innerHTML = processedLines.join('\n');
+            preview.appendChild(cifraDiv);
+        } else if (segment.startsWith('[IMG]') && segment.endsWith('[/IMG]')) {
+            const imgData = segment.slice(5, -6).trim();
+            const img = document.createElement('img');
+            try {
+                const imgInfo = JSON.parse(imgData);
+                img.src = imgInfo.src;
+                img.alt = imgInfo.alt || 'Imagem';
+                preview.appendChild(img);
+            } catch (e) {
+                preview.appendChild(document.createTextNode(segment));
+            }
+        } else if (segment.trim()) {
+            const html = marked.parse(segment);
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            preview.appendChild(div);
+        }
+    });
+}
+
+function addFormatacao(prefixo, sufixo) {
+    const editor = document.getElementById('editor');
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const textoSelecionado = editor.value.substring(start, end);
+    const novoTexto = editor.value.substring(0, start) + prefixo + textoSelecionado + sufixo + editor.value.substring(end);
+    editor.value = novoTexto;
+    renderizar();
+    syncWhileTyping();
+}
+
+function inserirABC() {
+    const abcExample = `[ABC]
+X:1
+M:4/4
+L:1/8
+K:C
+CDEF GABc | BAGF E2D2 |]
+[/ABC]\n`;
+    const editor = document.getElementById('editor');
+    const cursorPos = editor.selectionStart;
+    editor.value = editor.value.slice(0, cursorPos) + abcExample + editor.value.slice(editor.selectionEnd);
+    renderizar();
+    syncWhileTyping();
+}
+
+function inserirABCInfantil() {
+    const abcInfantil = `[ABC]
+X:2
+M:4/4
+L:1/4
+K:C
+"^🐶" C C G G | A A G2 | "^🐱" F F E E | D D C2 |]
+[/ABC]\n`;
+    const editor = document.getElementById('editor');
+    const cursorPos = editor.selectionStart;
+    editor.value = editor.value.slice(0, cursorPos) + abcInfantil + editor.value.slice(editor.selectionEnd);
+    renderizar();
+    syncWhileTyping();
+}
+
+function inserirImagem() {
+    const url = prompt("Digite a URL da imagem:");
+    if (url) {
+        const imgTag = `[IMG]{"src":"${url}","alt":"Imagem"}[/IMG]\n`;
+        const editor = document.getElementById('editor');
+        const cursorPos = editor.selectionStart;
+        editor.value = editor.value.slice(0, cursorPos) + imgTag + editor.value.slice(editor.selectionEnd);
+        renderizar();
+        syncWhileTyping();
+    }
+}
+
+function copiarEditor() {
+    const editor = document.getElementById('editor');
+    editor.select();
+    document.execCommand('copy');
+    showNotification('✅ Texto copiado!', 'success');
+}
+
+function colarEditor() {
+    const editor = document.getElementById('editor');
+    editor.focus();
+    if (navigator.clipboard && navigator.clipboard.readText) {
+        navigator.clipboard.readText().then(text => {
             const start = editor.selectionStart;
             const end = editor.selectionEnd;
-            if (start === end) return;
-            
-            let tag = '';
-            switch(type) {
-                case 'bold': tag = 'b'; break;
-                case 'italic': tag = 'i'; break;
-                case 'underline': tag = 'u'; break;
-                case 'fontFamily':
-                    const font = document.getElementById('fontFamily').value;
-                    tag = `span style="font-family: ${font}"`;
-                    break;
-                case 'fontSize':
-                    const size = document.getElementById('fontSize').value;
-                    tag = `span style="font-size: ${size}"`;
-                    break;
-                case 'color':
-                    const color = document.getElementById('textColor').value;
-                    tag = `span style="color: ${color}"`;
-                    break;
-            }
-            
-            const selectedText = editor.value.substring(start, end);
-            const newText = `<${tag}>${selectedText}</${tag.split(' ')[0]}>`;
-            editor.value = editor.value.substring(0, start) + newText + editor.value.substring(end);
-            updatePreview();
+            editor.value = editor.value.substring(0, start) + text + editor.value.substring(end);
+            renderizar();
             syncWhileTyping();
-        }
-        
-        function insertImageTag() {
-            const imgSrc = prompt("Digite a URL da imagem:");
-            const imgAlt = prompt("Digite a descrição da imagem:");
-            if (imgSrc) {
-                const imgTag = `[IMG]${JSON.stringify({src: imgSrc, alt: imgAlt})}[/IMG]\n`;
-                const editor = document.getElementById('editor');
-                const cursorPos = editor.selectionStart;
-                editor.value = editor.value.slice(0, cursorPos) + imgTag + editor.value.slice(editor.selectionEnd);
-                updatePreview();
+            showNotification('✅ Texto colado!', 'success');
+        }).catch(() => {
+            const text = prompt('📋 Cole o texto aqui (Ctrl+V):');
+            if (text) {
+                const start = editor.selectionStart;
+                const end = editor.selectionEnd;
+                editor.value = editor.value.substring(0, start) + text + editor.value.substring(end);
+                renderizar();
                 syncWhileTyping();
             }
-        }
-        
-        function uploadImage() {
-            const fileInput = document.getElementById('imageUpload');
-            const file = fileInput.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const imgTag = `[IMG]${JSON.stringify({src: e.target.result, alt: file.name})}[/IMG]\n`;
-                    const editor = document.getElementById('editor');
-                    const cursorPos = editor.selectionStart;
-                    editor.value = editor.value.slice(0, cursorPos) + imgTag + editor.value.slice(editor.selectionEnd);
-                    updatePreview();
-                    syncWhileTyping();
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-        
-        function importFile() {
-            document.getElementById('fileInput').click();
-        }
-        
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('editor').value = e.target.result;
-                updatePreview();
-                syncWhileTyping();
-            };
-            reader.readAsText(file);
         });
-        
-        function clearEditor() {
-            if (confirm('Tem certeza que deseja limpar todo o conteúdo?')) {
-                document.getElementById('editor').value = '';
-                updatePreview();
-                syncWhileTyping();
-            }
-        }
-        
-        function downloadTXT() {
-            const text = document.getElementById('editor').value;
-            const blob = new Blob([text], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `livro_${currentRoomId}.txt`;
-            a.click();
-        }
-        
-        function downloadHTML() {
-            const content = document.getElementById('preview').innerHTML;
-            const html = `<!DOCTYPE html><html><head><title>Livro Musical</title><script src="https://cdnjs.cloudflare.com/ajax/libs/abcjs/6.2.2/abcjs-basic-min.js"><\/script><style>body{margin:20px;font-family:Arial}.score{margin:20px 0}img{max-width:100%}</style></head><body>${content}</body></html>`;
-            const blob = new Blob([html], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `livro_${currentRoomId}.html`;
-            a.click();
-        }
-        
-        async function downloadPDF() {
-            const element = document.getElementById('preview');
-            const opt = { margin: [10, 10], filename: `livro_${currentRoomId}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-            html2pdf().set(opt).from(element).save();
-        }
-        
-        function updateConnectionStatus(connected) {
-            const dot = document.getElementById('statusDot');
-            const text = document.getElementById('statusText');
-            if (connected) {
-                dot.className = 'status connected';
-                text.innerHTML = 'Online';
-            } else {
-                dot.className = 'status disconnected';
-                text.innerHTML = 'Offline';
-            }
-        }
-        
-        function showNotification(message, type) {
-            const div = document.createElement('div');
-            div.className = 'notification';
-            div.style.background = type === 'error' ? '#dc3545' : (type === 'info' ? '#2196F3' : '#4CAF50');
-            div.textContent = message;
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 3000);
-        }
-        
-        document.getElementById('editor').addEventListener('input', () => {
-            updatePreview();
-            syncWhileTyping();
-        });
-        
-        initSupabase();
-    </script>
+    }
+}
+
+function exportHTML() {
+    const content = document.getElementById('preview').innerHTML;
+    const html = `<!DOCTYPE html><html><head><title>Pro Maestro</title><script src="https://cdnjs.cloudflare.com/ajax/libs/abcjs/6.2.2/abcjs-basic-min.js"><\/script><style>body{margin:20px;font-family:Arial}.score{margin:20px 0}img{max-width:100%}</style></head><body>${content}</body></html>`;
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pro_maestro_${currentRoomId}.html`;
+    a.click();
+}
+
+function downloadTXT() {
+    const text = document.getElementById('editor').value;
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pro_maestro_${currentRoomId}.txt`;
+    a.click();
+}
+
+function downloadPDF() {
+    const element = document.getElementById('preview');
+    const opt = { margin: [10, 10], filename: `pro_maestro_${currentRoomId}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+    html2pdf().set(opt).from(element).save();
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const main = document.getElementById('main');
+    sidebar.classList.toggle('active');
+    main.classList.toggle('sidebar-active');
+}
+
+function toggleCategoria(id) {
+    const element = document.getElementById(id);
+    element.classList.toggle('expanded');
+}
+
+function toggleFullscreenPreview() {
+    const preview = document.getElementById('preview');
+    if (!document.fullscreenElement) {
+        preview.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+document.getElementById('editor').addEventListener('input', () => {
+    renderizar();
+    syncWhileTyping();
+});
+
+initSupabase();
+</script>
 </body>
 </html>
